@@ -107,6 +107,9 @@ class RecordList(ScrollView, can_focus=True):
             super().__init__()
             self.record = record
 
+    class DisplayChanged(Message):
+        """Posted when line mode or sort order changes, invalidating search indices."""
+
     DEFAULT_CSS = """
     RecordList {
         height: 1fr;
@@ -257,6 +260,7 @@ class RecordList(ScrollView, can_focus=True):
         self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
         self.scroll_to(y=0, animate=False)
         self.refresh()
+        self.post_message(RecordList.DisplayChanged())
 
     def action_toggle_sort(self) -> None:
         from tav.time_parse import parse_timestamp
@@ -274,6 +278,7 @@ class RecordList(ScrollView, can_focus=True):
         self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
         self.scroll_to(y=0, animate=False)
         self.refresh()
+        self.post_message(RecordList.DisplayChanged())
 
     def action_show_detail(self) -> None:
         if len(self._store) == 0:

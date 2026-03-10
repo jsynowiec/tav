@@ -56,6 +56,14 @@ class DataViewScreen(Screen):
         self.app.push_screen(RecordDetail(message.record))
 
     # ------------------------------------------------------------------
+    # Display change (line mode / sort toggle)
+    # ------------------------------------------------------------------
+
+    def on_record_list_display_changed(self, message: RecordList.DisplayChanged) -> None:
+        self._clear_search()
+        self._refresh_record_list()
+
+    # ------------------------------------------------------------------
     # Actions
     # ------------------------------------------------------------------
 
@@ -257,6 +265,7 @@ class DataViewScreen(Screen):
         """Update virtual size and refresh the record list after a store change."""
         record_list = self.query_one(RecordList)
         store = self.app.store  # type: ignore[attr-defined]
+        record_list._cursor = 0
         record_list.virtual_size = Size(
             record_list.size.width or 80, max(len(store), 1)
         )

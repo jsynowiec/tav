@@ -13,6 +13,7 @@ class RecordStore:
         self._all_lines_mode = False
         self._predicate: Callable[[ParsedLine], bool] | None = None
         self._sort_key: list[int] | None = None  # permutation indices into base list
+        self._cache: list[ParsedLine] | None = None
 
     # ------------------------------------------------------------------
     # Dunder protocol
@@ -30,6 +31,7 @@ class RecordStore:
 
     def toggle_line_mode(self) -> None:
         self._all_lines_mode = not self._all_lines_mode
+        self._invalidate()
 
     # ------------------------------------------------------------------
     # Filtering
@@ -37,9 +39,11 @@ class RecordStore:
 
     def apply_filter(self, predicate: Callable[[ParsedLine], bool]) -> None:
         self._predicate = predicate
+        self._invalidate()
 
     def clear_filter(self) -> None:
         self._predicate = None
+        self._invalidate()
 
     # ------------------------------------------------------------------
     # Fields
@@ -64,15 +68,22 @@ class RecordStore:
                 dt = parser(rec.value.get(time_field))
             else:
                 dt = None
-            # Tuples sort: (0, dt) < (1, None) so parseable records come first
-            return (0, dt) if dt is not None else (1, idx)
+            if dt is None:
+                return (1, 0, idx)
+            # Separate aware and naive to avoid TypeError on comparison.
+            # Aware (UTC) records sort before naive records.
+            if dt.tzinfo is not None:
+                return (0, 0, dt)
+            return (0, 1, dt)
 
         indexed = list(enumerate(self._source))
         indexed.sort(key=sort_key)
         self._sort_key = [original_idx for original_idx, _ in indexed]
+        self._invalidate()
 
     def reset_sort(self) -> None:
         self._sort_key = None
+        self._invalidate()
 
     # ------------------------------------------------------------------
     # Count properties
@@ -101,11 +112,17 @@ class RecordStore:
             return [self._source[i] for i in self._sort_key]
         return self._source
 
+    def _invalidate(self) -> None:
+        self._cache = None
+
     def _visible(self) -> list[ParsedLine]:
         """Apply mode and filter to the sorted base list."""
+        if self._cache is not None:
+            return self._cache
         records = self._base()
         if not self._all_lines_mode:
             records = [r for r in records if r.kind == KIND_OBJECT]
         if self._predicate is not None:
             records = [r for r in records if self._predicate(r)]
-        return records
+        self._cache = records
+        return self._cache

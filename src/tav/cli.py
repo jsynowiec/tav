@@ -101,13 +101,14 @@ def main() -> None:
         # Validate: check if the path resolves on at least one loaded object record.
         objects = [r.value for r in result.records if r.kind == KIND_OBJECT]
         # Strip leading "$." for plain-field lookup so both "ts" and "$.ts" work.
-        plain = time_field.lstrip("$").lstrip(".")
+        plain = time_field.removeprefix("$.")
         found = any(plain in rec for rec in objects)
         if not found:
             print(
                 f"Warning: --time-field '{time_field}' did not match any record in the data",
                 file=sys.stderr,
             )
+        time_field = plain
     else:
         objects = [r.value for r in result.records if r.kind == KIND_OBJECT]
         time_field = detect_time_field(objects)

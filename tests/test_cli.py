@@ -4,8 +4,11 @@ import json
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 def run_tav(*args, input_text=None, env_extra=None):
@@ -16,7 +19,7 @@ def run_tav(*args, input_text=None, env_extra=None):
         capture_output=True,
         text=True,
         input=input_text,
-        cwd="/Users/jakub/Projects/experiments/tav/.worktrees/milestone-1",
+        cwd=PROJECT_ROOT,
         env=env,
     )
 
