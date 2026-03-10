@@ -43,7 +43,6 @@ class StatsViewScreen(Screen):
 
     BINDINGS = [
         Binding("s", "back_to_data", "Data view"),
-        Binding("q", "quit", "Quit"),
         Binding("escape", "back_to_data", "Data view"),
     ]
 
@@ -177,6 +176,3 @@ class StatsViewScreen(Screen):
 
     def action_back_to_data(self) -> None:
         self.app.pop_screen()
-
-    def action_quit(self) -> None:
-        self.app.exit()

@@ -18,7 +18,6 @@ class DataViewScreen(Screen):
     """Primary screen showing the record list."""
 
     BINDINGS = [
-        Binding("q", "app.quit", "Quit"),
         Binding("colon", "open_command", "Filter"),
         Binding("slash", "open_search", "Search"),
         Binding("question_mark", "open_help", "Help"),
