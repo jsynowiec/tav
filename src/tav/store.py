@@ -6,6 +6,21 @@ from typing import Callable, Any
 
 from tav.loader import ParsedLine, KIND_OBJECT, KIND_ERROR
 
+# Nested dict representing the union of all field paths across records.
+# Keys are field names; values are subtrees (empty dict for leaf fields).
+FieldTree = dict[str, "FieldTree"]
+
+
+def _merge_fields(obj: dict, tree: FieldTree, depth: int, max_depth: int) -> None:
+    """Recursively merge keys from obj into tree up to max_depth."""
+    if depth > max_depth:
+        return
+    for key, val in obj.items():
+        if key not in tree:
+            tree[key] = {}
+        if isinstance(val, dict) and depth < max_depth:
+            _merge_fields(val, tree[key], depth + 1, max_depth)
+
 
 class RecordStore:
     def __init__(self, lines: list[ParsedLine]) -> None:
@@ -14,6 +29,7 @@ class RecordStore:
         self._predicate: Callable[[ParsedLine], bool] | None = None
         self._sort_key: list[int] | None = None  # permutation indices into base list
         self._cache: list[ParsedLine] | None = None
+        self._visible_fields: set[tuple[str, ...]] | None = None
 
     # ------------------------------------------------------------------
     # Dunder protocol
@@ -55,6 +71,21 @@ class RecordStore:
             if rec.kind == KIND_OBJECT and isinstance(rec.value, dict):
                 fields.update(rec.value.keys())
         return fields
+
+    def field_tree(self, max_depth: int = 5) -> FieldTree:
+        """Return a nested dict of all field paths across KIND_OBJECT records."""
+        tree: FieldTree = {}
+        for rec in self._source:
+            if rec.kind == KIND_OBJECT and isinstance(rec.value, dict):
+                _merge_fields(rec.value, tree, depth=1, max_depth=max_depth)
+        return tree
+
+    @property
+    def visible_fields(self) -> set[tuple[str, ...]] | None:
+        return self._visible_fields
+
+    def set_visible_fields(self, fields: set[tuple[str, ...]] | None) -> None:
+        self._visible_fields = fields
 
     # ------------------------------------------------------------------
     # Sorting

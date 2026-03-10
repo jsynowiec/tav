@@ -27,7 +27,23 @@ _STYLE_BOOL = Style(color="red")
 _STYLE_NULL = Style(color="bright_black")
 
 
-def _colorize_value(value, max_width: int) -> list[Segment]:
+def _is_field_visible(path: tuple[str, ...], visible_fields: set[tuple[str, ...]]) -> bool:
+    """Return True if path is selected or any descendant path is selected."""
+    if path in visible_fields:
+        return True
+    # Check if any selected path starts with this path (descendant)
+    prefix_len = len(path)
+    return any(
+        len(f) > prefix_len and f[:prefix_len] == path
+        for f in visible_fields
+    )
+
+
+def _colorize_value(
+    value,
+    max_width: int,
+    visible_fields: set[tuple[str, ...]] | None = None,
+) -> list[Segment]:
     """Return inline colored segments for any JSON value, truncated to max_width chars."""
     segments: list[Segment] = []
     total = 0
@@ -46,15 +62,17 @@ def _colorize_value(value, max_width: int) -> list[Segment]:
         total += len(text)
         return True
 
-    def _render(val) -> bool:
+    def _render(val, path: tuple[str, ...] = ()) -> bool:
         if isinstance(val, dict):
             if not _append("{", Style()):
                 return False
             items = list(val.items())
+            if visible_fields is not None:
+                items = [(k, v) for k, v in items if _is_field_visible(path + (k,), visible_fields)]
             for i, (k, v) in enumerate(items):
                 if not _append(f'"{k}":', _STYLE_KEY):
                     return False
-                if not _render(v):
+                if not _render(v, path + (k,)):
                     return False
                 if i < len(items) - 1:
                     if not _append(",", Style()):
@@ -64,7 +82,7 @@ def _colorize_value(value, max_width: int) -> list[Segment]:
             if not _append("[", Style()):
                 return False
             for i, item in enumerate(val):
-                if not _render(item):
+                if not _render(item, path):
                     return False
                 if i < len(val) - 1:
                     if not _append(",", Style()):
@@ -193,7 +211,7 @@ class RecordList(ScrollView, can_focus=True):
                 content = content.ljust(content_width)
             content_segs = [Segment(content, error_style)]
         else:
-            content_segs = _colorize_value(record.value, content_width)
+            content_segs = _colorize_value(record.value, content_width, self._store.visible_fields)
 
         segments = prefix_segs + content_segs
 

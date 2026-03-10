@@ -224,3 +224,83 @@ def test_sort_mixed_aware_naive_does_not_raise():
     assert store[1].line_number in (2, 4)
     assert store[2].line_number in (1, 3)
     assert store[3].line_number in (1, 3)
+
+
+# ---------------------------------------------------------------------------
+# field_tree
+# ---------------------------------------------------------------------------
+
+def test_field_tree_flat_object():
+    lines = [make_object(1, {"a": 1, "b": "hello"})]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"a": {}, "b": {}}
+
+
+def test_field_tree_nested():
+    lines = [make_object(1, {"user": {"name": "alice", "age": 30}})]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"user": {"name": {}, "age": {}}}
+
+
+def test_field_tree_merges_across_records():
+    lines = [
+        make_object(1, {"a": 1, "b": 2}),
+        make_object(2, {"b": 3, "c": 4}),
+    ]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"a": {}, "b": {}, "c": {}}
+
+
+def test_field_tree_max_depth():
+    lines = [make_object(1, {"l1": {"l2": {"l3": {"l4": 42}}}})]
+    store = RecordStore(lines)
+    tree = store.field_tree(max_depth=2)
+    assert tree == {"l1": {"l2": {}}}
+
+
+def test_field_tree_ignores_non_objects():
+    lines = [
+        make_object(1, {"a": 1}),
+        make_error(2),
+        make_primitive(3, 99),
+    ]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"a": {}}
+
+
+def test_field_tree_mixed_types():
+    """When a field is a dict in one record and a scalar in another, children are preserved."""
+    lines = [
+        make_object(1, {"x": {"nested": 1}}),
+        make_object(2, {"x": "scalar"}),
+    ]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"x": {"nested": {}}}
+
+
+# ---------------------------------------------------------------------------
+# visible_fields
+# ---------------------------------------------------------------------------
+
+def test_visible_fields_default_none():
+    store = RecordStore([make_object(1, {"a": 1})])
+    assert store.visible_fields is None
+
+
+def test_set_and_get_visible_fields():
+    store = RecordStore([make_object(1, {"a": 1, "b": 2})])
+    selection = {("a",), ("b",)}
+    store.set_visible_fields(selection)
+    assert store.visible_fields == selection
+
+
+def test_set_visible_fields_none_clears():
+    store = RecordStore([make_object(1, {"a": 1})])
+    store.set_visible_fields({("a",)})
+    store.set_visible_fields(None)
+    assert store.visible_fields is None

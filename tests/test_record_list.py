@@ -8,7 +8,7 @@ from rich.segment import Segment
 
 from tests.conftest import make_object
 from tav.store import RecordStore
-from tav.widgets.record_list import _colorize_value, _LINE_NUM_WIDTH, _SEPARATOR, _STYLE_KEY, RecordList
+from tav.widgets.record_list import _colorize_value, _is_field_visible, _LINE_NUM_WIDTH, _SEPARATOR, _STYLE_KEY, RecordList
 
 
 def _text(segments: list[Segment]) -> str:
@@ -149,3 +149,68 @@ def test_scroll_to_field_empty_store_does_not_scroll():
     rl.scroll_to_field("foo")
     rl.scroll_to.assert_not_called()
     rl.refresh.assert_not_called()
+
+
+# ------------------------------------------------------------------
+# _is_field_visible
+# ------------------------------------------------------------------
+
+def test_is_field_visible_exact_match():
+    visible = {("a",), ("b",)}
+    assert _is_field_visible(("a",), visible) is True
+
+
+def test_is_field_visible_not_in_set():
+    visible = {("a",)}
+    assert _is_field_visible(("b",), visible) is False
+
+
+def test_is_field_visible_descendant_match():
+    """Parent path is visible when a descendant is selected."""
+    visible = {("user", "name")}
+    assert _is_field_visible(("user",), visible) is True
+
+
+def test_is_field_visible_no_descendant():
+    visible = {("user", "name")}
+    assert _is_field_visible(("other",), visible) is False
+
+
+# ------------------------------------------------------------------
+# _colorize_value with visible_fields filtering
+# ------------------------------------------------------------------
+
+def test_colorize_visible_fields_none_shows_all():
+    """visible_fields=None renders everything."""
+    result = _colorize_value({"a": 1, "b": 2}, max_width=80, visible_fields=None)
+    text = _text(result)
+    assert '"a":' in text
+    assert '"b":' in text
+
+
+def test_colorize_visible_fields_hides_unselected():
+    """Only selected top-level fields appear in output."""
+    result = _colorize_value({"a": 1, "b": 2, "c": 3}, max_width=80, visible_fields={("a",)})
+    text = _text(result)
+    assert '"a":' in text
+    assert '"b":' not in text
+    assert '"c":' not in text
+
+
+def test_colorize_nested_field_filtering():
+    """Nested fields are individually filterable."""
+    val = {"user": {"name": "alice", "email": "a@b.com"}}
+    result = _colorize_value(val, max_width=80, visible_fields={("user", "name")})
+    text = _text(result)
+    assert '"name":' in text
+    assert '"email":' not in text
+
+
+def test_colorize_parent_shown_when_child_visible():
+    """Parent key renders when at least one of its children is selected."""
+    val = {"user": {"name": "alice", "age": 30}}
+    result = _colorize_value(val, max_width=80, visible_fields={("user", "age")})
+    text = _text(result)
+    assert '"user":' in text
+    assert '"age":' in text
+    assert '"name":' not in text
