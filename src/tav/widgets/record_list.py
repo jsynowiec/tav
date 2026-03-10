@@ -12,7 +12,7 @@ from textual.message import Message
 from textual.scroll_view import ScrollView
 from textual.strip import Strip
 
-from tav.loader import KIND_ARRAY, KIND_ERROR, KIND_OBJECT, KIND_PRIMITIVE, ParsedLine
+from tav.loader import KIND_ARRAY, KIND_ERROR, KIND_OBJECT, ParsedLine
 from tav.store import RecordStore
 
 # Width of the line-number prefix column (digits + separator)
@@ -26,20 +26,8 @@ _STYLE_BOOL = Style(color="red")
 _STYLE_NULL = Style(color="bright_black")
 
 
-def _plain_content_style(record) -> Style:
-    """Return the plain (non-pretty) style for a record's content."""
-    if record.kind == KIND_OBJECT:
-        return Style()
-    elif record.kind == KIND_ERROR:
-        return Style(color="red")
-    elif record.kind == KIND_ARRAY:
-        return Style(color="yellow")
-    else:  # KIND_PRIMITIVE
-        return Style(color="cyan")
-
-
-def _colorize_object(value: dict, max_width: int) -> list[Segment]:
-    """Return inline colored segments for a JSON object, truncated to max_width chars."""
+def _colorize_value(value, max_width: int) -> list[Segment]:
+    """Return inline colored segments for any JSON value, truncated to max_width chars."""
     segments: list[Segment] = []
     total = 0
 
@@ -57,38 +45,42 @@ def _colorize_object(value: dict, max_width: int) -> list[Segment]:
         total += len(text)
         return True
 
-    if not _append("{", Style()):
-        return segments
-
-    items = list(value.items())
-    for i, (k, v) in enumerate(items):
-        key_str = f'"{k}":'
-        if not _append(key_str, _STYLE_KEY):
-            break
-
-        if isinstance(v, bool):
-            val_str = "true" if v else "false"
-            style = _STYLE_BOOL
-        elif v is None:
-            val_str = "null"
-            style = _STYLE_NULL
-        elif isinstance(v, str):
-            val_str = f'"{v}"'
-            style = _STYLE_STRING
-        elif isinstance(v, (int, float)):
-            val_str = json.dumps(v)
-            style = _STYLE_NUMBER
+    def _render(val) -> bool:
+        if isinstance(val, dict):
+            if not _append("{", Style()):
+                return False
+            items = list(val.items())
+            for i, (k, v) in enumerate(items):
+                if not _append(f'"{k}":', _STYLE_KEY):
+                    return False
+                if not _render(v):
+                    return False
+                if i < len(items) - 1:
+                    if not _append(",", Style()):
+                        return False
+            return _append("}", Style())
+        elif isinstance(val, list):
+            if not _append("[", Style()):
+                return False
+            for i, item in enumerate(val):
+                if not _render(item):
+                    return False
+                if i < len(val) - 1:
+                    if not _append(",", Style()):
+                        return False
+            return _append("]", Style())
+        elif isinstance(val, bool):
+            return _append("true" if val else "false", _STYLE_BOOL)
+        elif val is None:
+            return _append("null", _STYLE_NULL)
+        elif isinstance(val, str):
+            return _append(f'"{val}"', _STYLE_STRING)
+        elif isinstance(val, (int, float)):
+            return _append(json.dumps(val), _STYLE_NUMBER)
         else:
-            val_str = json.dumps(v, separators=(",", ":"))
-            style = Style()
+            return _append(str(val), Style())
 
-        if i < len(items) - 1:
-            val_str += ","
-
-        if not _append(val_str, style):
-            break
-    else:
-        _append("}", Style())
+    _render(value)
 
     # Pad to fill the remaining width
     if total < max_width:
@@ -123,7 +115,6 @@ class RecordList(ScrollView, can_focus=True):
         ("up", "cursor_up", "Up"),
         ("home", "cursor_top", "Top"),
         ("end", "cursor_bottom", "Bottom"),
-        Binding("t", "toggle_pretty", "Pretty", show=True),
         Binding("a", "toggle_line_mode", "All lines", show=True),
         Binding("o", "toggle_sort", "Sort", show=True),
         Binding("enter", "show_detail", "Detail", show=True),
@@ -133,7 +124,6 @@ class RecordList(ScrollView, can_focus=True):
         super().__init__(**kwargs)
         self._store = store
         self._cursor: int = 0
-        self._pretty: bool = False
         self._sorted: bool = False
 
     def on_mount(self) -> None:
@@ -165,38 +155,27 @@ class RecordList(ScrollView, can_focus=True):
         prefix_len = len(prefix)
         content_width = max(0, width - prefix_len)
 
+        prefix_segs = [
+            Segment(line_num, Style(dim=True)),
+            Segment(_SEPARATOR, Style(dim=True)),
+        ]
+
+        if record.kind == KIND_ERROR:
+            error_style = Style(color="red")
+            content = f"[ERROR] {record.value}"
+            if len(content) > content_width:
+                content = content[: content_width - 1] + "\u2026"
+            else:
+                content = content.ljust(content_width)
+            content_segs = [Segment(content, error_style)]
+        else:
+            content_segs = _colorize_value(record.value, content_width)
+
+        segments = prefix_segs + content_segs
+
         if is_cursor:
             cursor_style = Style(reverse=True)
-            content = self._render_content_plain(record)
-            full_line = prefix + content
-            if len(full_line) >= width:
-                full_line = full_line[: width - 1] + "\u2026"  # …
-            else:
-                full_line = full_line.ljust(width)
-            segments = [Segment(full_line, cursor_style)]
-        elif self._pretty and record.kind == KIND_OBJECT:
-            prefix_segs = [
-                Segment(line_num, Style(dim=True)),
-                Segment(_SEPARATOR, Style(dim=True)),
-            ]
-            content_segs = _colorize_object(record.value, content_width)
-            segments = prefix_segs + content_segs
-        else:
-            content = self._render_content_plain(record)
-            full_line = prefix + content
-            if len(full_line) >= width:
-                full_line = full_line[: width - 1] + "\u2026"  # …
-            else:
-                full_line = full_line.ljust(width)
-            content_style = _plain_content_style(record)
-            num_part = full_line[:_LINE_NUM_WIDTH]
-            sep_part = full_line[_LINE_NUM_WIDTH:prefix_len]
-            content_part = full_line[prefix_len:]
-            segments = [
-                Segment(num_part, Style(dim=True)),
-                Segment(sep_part, Style(dim=True)),
-                Segment(content_part, content_style),
-            ]
+            segments = [Segment(s.text, s.style + cursor_style) for s in segments]
 
         strip = Strip(segments, width)
         # Crop to account for horizontal scroll
@@ -249,10 +228,6 @@ class RecordList(ScrollView, can_focus=True):
     # ------------------------------------------------------------------
     # Display mode actions
     # ------------------------------------------------------------------
-
-    def action_toggle_pretty(self) -> None:
-        self._pretty = not self._pretty
-        self.refresh()
 
     def action_toggle_line_mode(self) -> None:
         self._store.toggle_line_mode()
