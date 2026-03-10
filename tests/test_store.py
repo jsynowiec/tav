@@ -283,6 +283,22 @@ def test_field_tree_mixed_types():
     assert tree == {"x": {"nested": {}}}
 
 
+def test_field_tree_array_of_objects():
+    """Array-of-objects field: child keys from items are merged into the tree."""
+    lines = [make_object(1, {"r": [{"x": 1, "y": 2}, {"x": 3, "z": 4}]})]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"r": {"x": {}, "y": {}, "z": {}}}
+
+
+def test_field_tree_nested_array_of_objects():
+    """Nested arrays of objects recurse to correct depth."""
+    lines = [make_object(1, {"outer": {"items": [{"val": 1}]}})]
+    store = RecordStore(lines)
+    tree = store.field_tree()
+    assert tree == {"outer": {"items": {"val": {}}}}
+
+
 # ---------------------------------------------------------------------------
 # visible_fields
 # ---------------------------------------------------------------------------

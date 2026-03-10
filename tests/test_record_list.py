@@ -214,3 +214,15 @@ def test_colorize_parent_shown_when_child_visible():
     assert '"user":' in text
     assert '"age":' in text
     assert '"name":' not in text
+
+
+def test_colorize_array_of_objects_with_visible_fields():
+    """Array-of-objects: selecting a nested path renders values, not empty objects."""
+    val = {"r": [{"x": 1, "y": 2}, {"x": 3, "y": 4}]}
+    result = _colorize_value(val, max_width=80, visible_fields={("r", "x")})
+    text = _text(result)
+    assert '"r":' in text
+    assert '"x":' in text
+    assert "1" in text
+    assert '"y":' not in text
+    assert "{}" not in text

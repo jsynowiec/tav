@@ -20,6 +20,10 @@ def _merge_fields(obj: dict, tree: FieldTree, depth: int, max_depth: int) -> Non
             tree[key] = {}
         if isinstance(val, dict) and depth < max_depth:
             _merge_fields(val, tree[key], depth + 1, max_depth)
+        elif isinstance(val, list) and depth < max_depth:
+            for item in val:
+                if isinstance(item, dict):
+                    _merge_fields(item, tree[key], depth + 1, max_depth)
 
 
 class RecordStore:
