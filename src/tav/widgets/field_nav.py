@@ -56,6 +56,12 @@ class FieldNav(ModalScreen[str | None]):
         for f in self._filtered:
             list_view.append(ListItem(Label(f)))
 
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if self._filtered:
+            self.dismiss(self._filtered[0])
+        else:
+            self.dismiss(None)
+
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         label = event.item.query_one(Label)
         self.dismiss(str(label.renderable))

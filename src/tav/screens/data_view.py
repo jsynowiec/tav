@@ -26,7 +26,7 @@ class DataViewScreen(Screen):
         Binding("s", "toggle_stats", "Stats"),
         Binding("escape", "handle_escape", "Close"),
         Binding("n", "next_match", "Next match"),
-        Binding("shift+n", "prev_match", "Prev match"),
+        Binding("N", "prev_match", "Prev match", show=False),
     ]
 
     def __init__(self, **kwargs) -> None:
@@ -114,11 +114,13 @@ class DataViewScreen(Screen):
         if bar.display:
             bar.display = False
             self.post_message(CommandBar.Dismissed())
+            self._focus_record_list()
             return
 
         if self._search_active:
             self._clear_search()
             self._refresh_record_list()
+            self._focus_record_list()
             return
 
         if self._active_filter is not None:
@@ -128,6 +130,7 @@ class DataViewScreen(Screen):
             store = self.app.store  # type: ignore[attr-defined]
             source_name = self.app.source_name  # type: ignore[attr-defined]
             self.app.sub_title = f"{source_name}  {len(store)} records"
+            self._focus_record_list()
 
     # ------------------------------------------------------------------
     # Overlay callbacks
@@ -139,7 +142,7 @@ class DataViewScreen(Screen):
     def _on_field_nav_dismissed(self, result: str | None) -> None:
         self._overlay_visible = False
         if result:
-            self.app.notify(f"Field: {result}")
+            self.query_one(RecordList).scroll_to_field(result)
 
     # ------------------------------------------------------------------
     # CommandBar message handlers
@@ -148,18 +151,23 @@ class DataViewScreen(Screen):
     def on_command_bar_command_submitted(self, message: CommandBar.CommandSubmitted) -> None:
         """Apply JMESPath filter or time range command."""
         self._apply_command(message.expression)
+        self._focus_record_list()
 
     def on_command_bar_search_submitted(self, message: CommandBar.SearchSubmitted) -> None:
         """Apply text/regex search and highlight matches."""
         self._apply_search(message.pattern)
+        self._focus_record_list()
 
     def on_command_bar_dismissed(self, message: CommandBar.Dismissed) -> None:
         """CommandBar dismissed with Escape — do nothing (don't clear active filter)."""
-        pass
+        self._focus_record_list()
 
     # ------------------------------------------------------------------
     # Filter and search application
     # ------------------------------------------------------------------
+
+    def _focus_record_list(self) -> None:
+        self.query_one(RecordList).focus()
 
     def _apply_command(self, expression: str) -> None:
         """Parse expression and apply as filter or time range to the store."""
@@ -190,7 +198,7 @@ class DataViewScreen(Screen):
         self._clear_search()
         self._refresh_record_list()
         source_name = self.app.source_name  # type: ignore[attr-defined]
-        self.app.sub_title = f"{source_name}  {len(store)} records (filtered)"
+        self.app.sub_title = f"{source_name}  {len(store)} records — :{self._active_filter}"
 
     def _apply_time_filter(self, value: str, direction: str) -> None:
         """Filter records to those after/before the given timestamp."""
@@ -229,7 +237,7 @@ class DataViewScreen(Screen):
         self._clear_search()
         self._refresh_record_list()
         source_name = self.app.source_name  # type: ignore[attr-defined]
-        self.app.sub_title = f"{source_name}  {len(store)} records (filtered)"
+        self.app.sub_title = f"{source_name}  {len(store)} records — :{self._active_filter}"
 
     def _apply_search(self, pattern: str) -> None:
         """Apply text/regex search and store match indices."""

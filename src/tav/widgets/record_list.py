@@ -296,6 +296,20 @@ class RecordList(ScrollView, can_focus=True):
         self.scroll_to(x=min(self.scroll_offset.x + _SCROLL_STEP, max_x), animate=False)
         self.refresh()
 
+    def scroll_to_field(self, field_name: str) -> None:
+        """Scroll horizontally so that field_name is visible in the current cursor row."""
+        if len(self._store) == 0:
+            return
+        record = self._store[self._cursor]
+        content = self._render_content_plain(record)
+        needle = f'"{field_name}":'
+        pos = content.find(needle)
+        if pos == -1:
+            return
+        prefix_len = _LINE_NUM_WIDTH + len(_SEPARATOR)
+        offset = prefix_len + pos
+        self.scroll_to(x=offset, animate=False)
+
     def action_show_detail(self) -> None:
         if len(self._store) == 0:
             return

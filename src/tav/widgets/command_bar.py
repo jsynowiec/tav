@@ -29,6 +29,7 @@ class CommandBar(Widget):
         border: none;
         padding: 0 1;
         background: $surface;
+        color: $text;
     }
     """
 
@@ -71,7 +72,7 @@ class CommandBar(Widget):
         inp.placeholder = "JMESPath filter, e.g.: sensor_id == 'value'"
         inp.value = ""
         self.display = True
-        inp.focus()
+        self.call_after_refresh(inp.focus)
 
     def activate_search(self) -> None:
         """Show bar in search mode with '/' prefix."""
@@ -81,7 +82,7 @@ class CommandBar(Widget):
         inp.placeholder = "Regex pattern, e.g.: error|warning"
         inp.value = ""
         self.display = True
-        inp.focus()
+        self.call_after_refresh(inp.focus)
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
         value = event.value.strip()

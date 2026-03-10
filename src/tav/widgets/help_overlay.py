@@ -16,7 +16,6 @@ HELP_TEXT = """\
 
 [bold]Display[/bold]
   [cyan]Enter[/cyan]      Expand/collapse record detail
-  [cyan]t[/cyan]          Toggle compact / pretty mode
   [cyan]a[/cyan]          Toggle objects-only / all-lines mode
   [cyan]o[/cyan]          Sort by time / restore file order
   [cyan]g[/cyan]          Go-to-field navigator

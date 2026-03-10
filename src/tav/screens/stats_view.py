@@ -77,7 +77,14 @@ class StatsViewScreen(Screen):
         self._render_field_stats(data_stats)
 
     def _render_overview(self, data_stats) -> None:
+        from tav.screens.data_view import DataViewScreen
+
         source_name = self.app.source_name  # type: ignore[attr-defined]
+        active_filter: str | None = None
+        for screen in reversed(self.app.screen_stack):  # type: ignore[attr-defined]
+            if isinstance(screen, DataViewScreen):
+                active_filter = screen._active_filter
+                break
 
         lines = Text()
         lines.append("Dataset Overview\n", style="bold cyan")
@@ -93,6 +100,10 @@ class StatsViewScreen(Screen):
         if data_stats.filtered_count != data_stats.total_count:
             lines.append("Filtered:   ", style="bold")
             lines.append(f"{data_stats.filtered_count} records\n")
+
+        if active_filter is not None:
+            lines.append("Filter:     ", style="bold")
+            lines.append(f"{active_filter}\n")
 
         self.query_one("#overview-section", Static).update(lines)
 
