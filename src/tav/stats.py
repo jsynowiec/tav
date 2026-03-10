@@ -134,9 +134,7 @@ def _compute_field_stats(objects: list) -> list[FieldStats]:
 
         completeness = present_count / total if total > 0 else 0.0
 
-        if len(type_set) == 0:
-            value_type = "null"
-        elif len(type_set) == 1:
+        if len(type_set) == 1:
             value_type = next(iter(type_set))
         else:
             value_type = "mixed"

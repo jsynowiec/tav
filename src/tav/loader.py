@@ -28,8 +28,8 @@ def load_lines(source: TextIO) -> LoadResult:
     for line_number, raw in enumerate(source, start=1):
         # Strip BOM from the very first line
         if line_number == 1:
-            raw = raw.lstrip("\ufeff")
-        line = raw.rstrip("\n").rstrip("\r")
+            raw = raw.removeprefix("\ufeff")
+        line = raw.rstrip("\r\n")
         if not line.strip():
             continue
         try:

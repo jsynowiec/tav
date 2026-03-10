@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Callable, Any
 
-from tav.loader import ParsedLine, KIND_OBJECT
+from tav.loader import ParsedLine, KIND_OBJECT, KIND_ERROR
 
 
 class RecordStore:
@@ -99,7 +99,6 @@ class RecordStore:
 
     @property
     def error_count(self) -> int:
-        from tav.loader import KIND_ERROR
         return sum(1 for r in self._source if r.kind == KIND_ERROR)
 
     # ------------------------------------------------------------------

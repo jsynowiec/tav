@@ -8,6 +8,7 @@ from rich.json import JSON
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.binding import Binding
+from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
@@ -24,7 +25,7 @@ class RecordDetail(ModalScreen):
         align: center middle;
     }
 
-    RecordDetail > Static {
+    RecordDetail > VerticalScroll {
         width: auto;
         max-width: 120;
         height: auto;
@@ -32,7 +33,6 @@ class RecordDetail(ModalScreen):
         border: round $primary;
         padding: 1 2;
         background: $surface;
-        overflow-y: auto;
     }
     """
 
@@ -52,16 +52,18 @@ class RecordDetail(ModalScreen):
         if record.kind in (KIND_OBJECT, KIND_ARRAY):
             pretty = json.dumps(record.value, indent=2)
             content = JSON(pretty)
-            yield Static(content, markup=False)
+            widget = Static(content, markup=False)
         elif record.kind == KIND_ERROR:
             text = Text(str(record.value), style="bold red")
-            yield Static(text, markup=False)
+            widget = Static(text, markup=False)
         else:  # KIND_PRIMITIVE
             text = Text(str(record.value))
-            yield Static(text, markup=False)
+            widget = Static(text, markup=False)
+
+        yield VerticalScroll(widget)
 
         # Set border title after compose via on_mount
         self._title = title
 
     def on_mount(self) -> None:
-        self.query_one(Static).border_title = self._title
+        self.query_one(VerticalScroll).border_title = self._title

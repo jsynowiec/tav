@@ -1,6 +1,6 @@
 # ABOUTME: Textual App subclass for tav — the TUI entry point.
 # ABOUTME: Owns shared state (RecordStore, time_field, source_name) and screen registry.
-from textual.app import App, ComposeResult
+from textual.app import App
 
 from tav.store import RecordStore
 from tav.screens.data_view import DataViewScreen
