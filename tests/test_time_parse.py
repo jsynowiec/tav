@@ -1,0 +1,173 @@
+# ABOUTME: Tests for timestamp parsing logic in time_parse module.
+# ABOUTME: Covers epoch ints/floats, ISO 8601 strings, strptime fallbacks, and type guards.
+import pytest
+from datetime import datetime, timezone
+
+from tav.time_parse import parse_timestamp
+
+
+# ---------------------------------------------------------------------------
+# Epoch seconds (int)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, expected", [
+    (1705314600, datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)),
+    (1000000000, datetime(2001, 9, 9, 1, 46, 40, tzinfo=timezone.utc)),
+    (1577836800, datetime(2020, 1, 1, 0, 0, 0, tzinfo=timezone.utc)),
+])
+def test_epoch_seconds_returns_utc_datetime(value, expected):
+    assert parse_timestamp(value) == expected
+
+
+# ---------------------------------------------------------------------------
+# Epoch milliseconds (int > 1e12)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, expected", [
+    (1705314600000, datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)),
+    (1577836800000, datetime(2020, 1, 1, 0, 0, 0, tzinfo=timezone.utc)),
+])
+def test_epoch_milliseconds_divides_by_1000(value, expected):
+    assert parse_timestamp(value) == expected
+
+
+# ---------------------------------------------------------------------------
+# Epoch float
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, expected", [
+    (1705314600.0, datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)),
+    (1705314600.5, datetime(2024, 1, 15, 10, 30, 0, 500000, tzinfo=timezone.utc)),
+    (1705314600000.0, datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)),
+])
+def test_epoch_float_works_correctly(value, expected):
+    assert parse_timestamp(value) == expected
+
+
+# ---------------------------------------------------------------------------
+# Epoch out of range → None
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value", [
+    0,           # Unix epoch 1970 — before 2000-01-01
+    -1,          # Negative timestamp
+    9999999999999,  # Far future — after 2040-12-31
+    32503680000,    # 3001-01-01 in seconds — after 2040-12-31
+])
+def test_epoch_out_of_range_returns_none(value):
+    assert parse_timestamp(value) is None
+
+
+# ---------------------------------------------------------------------------
+# ISO 8601 strings
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, expected", [
+    (
+        "2024-01-15T10:30:00Z",
+        datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
+    ),
+    (
+        "2024-01-15T10:30:00+05:00",
+        datetime(2024, 1, 15, 5, 30, 0, tzinfo=timezone.utc),
+    ),
+    (
+        "2024-01-15T10:30:00.123456Z",
+        datetime(2024, 1, 15, 10, 30, 0, 123456, tzinfo=timezone.utc),
+    ),
+])
+def test_iso8601_with_timezone_returns_utc_datetime(value, expected):
+    assert parse_timestamp(value) == expected
+
+
+@pytest.mark.parametrize("value, expected", [
+    (
+        "2024-01-15T10:30:00",
+        datetime(2024, 1, 15, 10, 30, 0),
+    ),
+    (
+        "2024-01-15",
+        datetime(2024, 1, 15, 0, 0, 0),
+    ),
+])
+def test_iso8601_without_timezone_returns_naive_datetime(value, expected):
+    result = parse_timestamp(value)
+    assert result == expected
+    assert result.tzinfo is None
+
+
+# ---------------------------------------------------------------------------
+# strptime fallback formats
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value, expected", [
+    (
+        "2024-01-15 10:30:00",
+        datetime(2024, 1, 15, 10, 30, 0),
+    ),
+    (
+        "2024-01-15 10:30:00.123456",
+        datetime(2024, 1, 15, 10, 30, 0, 123456),
+    ),
+    (
+        "15/01/2024 10:30:00",
+        datetime(2024, 1, 15, 10, 30, 0),
+    ),
+])
+def test_strptime_fallback_formats_parsed_correctly(value, expected):
+    result = parse_timestamp(value)
+    assert result == expected
+    assert result.tzinfo is None
+
+
+# ---------------------------------------------------------------------------
+# Invalid strings → None
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value", [
+    "not-a-date",
+    "2024-13-45",
+    "hello world",
+    "",
+    "2024/01/15",  # unsupported format
+])
+def test_invalid_string_returns_none(value):
+    assert parse_timestamp(value) is None
+
+
+# ---------------------------------------------------------------------------
+# Non-string/non-numeric types → None
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value", [
+    None,
+    True,
+    False,
+    {},
+    [],
+    {"ts": "2024-01-15"},
+    [1705315800],
+])
+def test_non_parseable_types_return_none(value):
+    assert parse_timestamp(value) is None
+
+
+# ---------------------------------------------------------------------------
+# TZ normalization: any tz-aware input → UTC
+# ---------------------------------------------------------------------------
+
+def test_tz_aware_string_normalized_to_utc():
+    result = parse_timestamp("2024-01-15T10:30:00+05:00")
+    assert result is not None
+    assert result.tzinfo == timezone.utc
+    assert result == datetime(2024, 1, 15, 5, 30, 0, tzinfo=timezone.utc)
+
+
+# ---------------------------------------------------------------------------
+# Naive preserved: naive input → tzinfo is None
+# ---------------------------------------------------------------------------
+
+def test_naive_string_preserves_no_timezone():
+    result = parse_timestamp("2024-01-15T10:30:00")
+    assert result is not None
+    assert result.tzinfo is None
