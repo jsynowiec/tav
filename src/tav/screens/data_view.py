@@ -178,6 +178,10 @@ class DataViewScreen(Screen):
             match_indices = filter_records(store, expression)
         except ValueError as e:
             self.app.notify(f"Invalid filter: {e}", severity="error")
+            self._active_filter = None
+            self._refresh_record_list()
+            source_name = self.app.source_name  # type: ignore[attr-defined]
+            self.app.sub_title = f"{source_name}  {len(store)} records"
             return
 
         matched_line_nums = {store[i].line_number for i in match_indices}

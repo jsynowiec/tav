@@ -215,7 +215,7 @@ def test_load_from_string_io():
 def test_crlf_and_lf_line_endings_parsed_correctly(line_ending):
     lines = ['{"x": 1}', '{"x": 2}', '{"x": 3}']
     text = line_ending.join(lines) + line_ending
-    result = load_lines(io.StringIO(text))
+    result = load_lines(io.StringIO(text, newline=""))
     assert len(result.records) == 3
     for i, rec in enumerate(result.records):
         assert rec.kind == KIND_OBJECT

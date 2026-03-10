@@ -21,6 +21,7 @@ from tav.screens.stats_view import _format_span
     (172800,  "2 days"),
     (90000,   "1 day 1 hour"),
     (93600,   "1 day 2 hours"),
+    (90060,   "1 day 1 hour"),   # 1d 1h 1m — minutes dropped at day scale
 ])
 def test_format_span(seconds, expected):
     assert _format_span(seconds) == expected

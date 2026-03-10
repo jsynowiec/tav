@@ -288,6 +288,7 @@ def test_time_stats_mixed_aware_naive_datetimes_no_error():
     assert result.time_stats is not None
     assert result.time_stats.record_count == 3
 
+
 def test_field_cardinality_medium_at_boundary():
     # exactly 10 unique values → medium (boundary: <10 is low, <=100 is medium)
     lines = [make_object(i + 1, {"id": i}) for i in range(10)]
