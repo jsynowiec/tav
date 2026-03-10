@@ -6,6 +6,7 @@ from textual.geometry import Size
 from textual.screen import Screen
 from textual.widgets import Footer, Header
 
+from tav.loader import KIND_OBJECT
 from tav.widgets.command_bar import CommandBar
 from tav.widgets.field_nav import FieldNav
 from tav.widgets.help_overlay import HelpOverlay
@@ -171,13 +172,14 @@ class DataViewScreen(Screen):
             self._apply_time_filter(expression[7:].strip(), "before")
             return
 
+        store = self.app.store  # type: ignore[attr-defined]
+        store.clear_filter()
         try:
-            match_indices = filter_records(self.app.store, expression)  # type: ignore[attr-defined]
+            match_indices = filter_records(store, expression)
         except ValueError as e:
             self.app.notify(f"Invalid filter: {e}", severity="error")
             return
 
-        store = self.app.store  # type: ignore[attr-defined]
         matched_line_nums = {store[i].line_number for i in match_indices}
         store.apply_filter(lambda r: r.line_number in matched_line_nums)
         self._active_filter = expression
@@ -201,7 +203,7 @@ class DataViewScreen(Screen):
         time_field = self.app.time_field  # type: ignore[attr-defined]
 
         def predicate(record) -> bool:
-            if record.kind != "object":
+            if record.kind != KIND_OBJECT:
                 return False
             val = record.value.get(time_field)
             if val is None:
@@ -217,6 +219,7 @@ class DataViewScreen(Screen):
             return False  # mixed tz/naive — skip
 
         store = self.app.store  # type: ignore[attr-defined]
+        store.clear_filter()
         store.apply_filter(predicate)
         self._active_filter = f"{direction}:{value}"
         self._clear_search()

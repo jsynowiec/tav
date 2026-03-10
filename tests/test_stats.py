@@ -279,6 +279,31 @@ def test_field_value_type_parametrized(val, expected_type):
 # 15. field cardinality medium boundary (10 unique values)
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# 16. mixed aware/naive datetimes don't crash
+# ---------------------------------------------------------------------------
+
+def test_time_stats_mixed_aware_naive_datetimes_no_error():
+    """compute_stats must not raise TypeError when datetimes mix tz-aware and naive."""
+    def naive_and_aware_parser(value):
+        """Returns aware for Z suffix, naive otherwise — intentionally mixed."""
+        if not isinstance(value, str):
+            return None
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00") if value.endswith("Z") else value)
+        except ValueError:
+            return None
+
+    lines = [
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),   # aware (UTC)
+        make_object(2, {"ts": "2024-01-02T00:00:00"}),    # naive
+        make_object(3, {"ts": "2024-01-03T00:00:00Z"}),   # aware (UTC)
+    ]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field="ts", time_parser=naive_and_aware_parser)
+    assert result.time_stats is not None
+    assert result.time_stats.record_count == 3
+
 def test_field_cardinality_medium_at_boundary():
     # exactly 10 unique values → medium (boundary: <10 is low, <=100 is medium)
     lines = [make_object(i + 1, {"id": i}) for i in range(10)]

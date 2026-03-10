@@ -58,9 +58,8 @@ def epoch_records(count: int = 20, seed: int = 7) -> list[dict]:
     return records
 
 
-def mixed_jsonl_lines(seed: int = 13) -> list[str]:
+def mixed_jsonl_lines() -> list[str]:
     """A mix of objects, primitives, arrays, blank lines, and invalid JSON."""
-    rng = random.Random(seed)
     return [
         json.dumps({"timestamp": "2024-01-01T00:00:00Z", "val": 1}),
         "",  # blank line

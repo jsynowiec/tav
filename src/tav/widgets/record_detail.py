@@ -14,8 +14,6 @@ from textual.widgets import Static
 
 from tav.loader import KIND_ARRAY, KIND_ERROR, KIND_OBJECT, ParsedLine
 
-_MAX_WIDTH = 120
-
 
 class RecordDetail(ModalScreen):
     """Modal overlay showing a single JSONL record pretty-printed."""
