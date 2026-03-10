@@ -4,6 +4,7 @@ from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Footer, Header
 
+from tav.widgets.record_detail import RecordDetail
 from tav.widgets.record_list import RecordList
 
 
@@ -27,3 +28,6 @@ class DataViewScreen(Screen):
         source_name = self.app.source_name  # type: ignore[attr-defined]
         self.app.title = "tav"
         self.app.sub_title = f"{source_name}  {len(store)} records"
+
+    def on_record_list_record_selected(self, message: RecordList.RecordSelected) -> None:
+        self.app.push_screen(RecordDetail(message.record))
