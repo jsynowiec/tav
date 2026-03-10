@@ -18,6 +18,7 @@ from tav.store import RecordStore
 # Width of the line-number prefix column (digits + separator)
 _LINE_NUM_WIDTH = 5
 _SEPARATOR = " \u2502 "  # " │ "
+_SCROLL_STEP = 8
 
 _STYLE_KEY = Style(color="cyan", bold=True)
 _STYLE_STRING = Style(color="green")
@@ -113,6 +114,10 @@ class RecordList(ScrollView, can_focus=True):
         ("k", "cursor_up", "Up"),
         ("down", "cursor_down", "Down"),
         ("up", "cursor_up", "Up"),
+        ("left", "scroll_left", "Left"),
+        ("right", "scroll_right", "Right"),
+        ("h", "scroll_left", "Left"),
+        ("l", "scroll_right", "Right"),
         ("home", "cursor_top", "Top"),
         ("end", "cursor_bottom", "Bottom"),
         Binding("a", "toggle_line_mode", "All lines", show=True),
@@ -125,13 +130,31 @@ class RecordList(ScrollView, can_focus=True):
         self._store = store
         self._cursor: int = 0
         self._sorted: bool = False
+        self._max_content_width: int = self._compute_max_content_width()
+
+    def _compute_max_content_width(self) -> int:
+        """Scan store to find the widest record content width."""
+        prefix_len = _LINE_NUM_WIDTH + len(_SEPARATOR)
+        max_w = 0
+        for i in range(len(self._store)):
+            record = self._store[i]
+            content = self._render_content_plain(record)
+            line_w = prefix_len + len(content)
+            if line_w > max_w:
+                max_w = line_w
+        return max_w
 
     def on_mount(self) -> None:
-        # Set the virtual height to the number of records; width handled by the container.
-        self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
+        self.virtual_size = Size(
+            max(self._max_content_width, self.size.width or 80),
+            max(len(self._store), 1),
+        )
 
     def on_resize(self) -> None:
-        self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
+        self.virtual_size = Size(
+            max(self._max_content_width, self.size.width or 80),
+            max(len(self._store), 1),
+        )
 
     def render_line(self, y: int) -> Strip:
         """Render a single visible line.
@@ -142,6 +165,7 @@ class RecordList(ScrollView, can_focus=True):
         scroll_x, scroll_y = self.scroll_offset
         record_index = y + scroll_y
         width = self.size.width
+        virtual_width = self.virtual_size.width
 
         if record_index >= len(self._store):
             return Strip.blank(width)
@@ -153,7 +177,7 @@ class RecordList(ScrollView, can_focus=True):
         line_num = str(record.line_number).rjust(_LINE_NUM_WIDTH)
         prefix = line_num + _SEPARATOR
         prefix_len = len(prefix)
-        content_width = max(0, width - prefix_len)
+        content_width = max(0, virtual_width - prefix_len)
 
         prefix_segs = [
             Segment(line_num, Style(dim=True)),
@@ -177,7 +201,7 @@ class RecordList(ScrollView, can_focus=True):
             cursor_style = Style(reverse=True)
             segments = [Segment(s.text, s.style + cursor_style) for s in segments]
 
-        strip = Strip(segments, width)
+        strip = Strip(segments, virtual_width)
         # Crop to account for horizontal scroll
         return strip.crop(scroll_x, scroll_x + width)
 
@@ -232,7 +256,11 @@ class RecordList(ScrollView, can_focus=True):
     def action_toggle_line_mode(self) -> None:
         self._store.toggle_line_mode()
         self._cursor = 0
-        self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
+        self._max_content_width = self._compute_max_content_width()
+        self.virtual_size = Size(
+            max(self._max_content_width, self.size.width or 80),
+            max(len(self._store), 1),
+        )
         self.scroll_to(y=0, animate=False)
         self.refresh()
         self.post_message(RecordList.DisplayChanged())
@@ -250,10 +278,23 @@ class RecordList(ScrollView, can_focus=True):
             self._store.reset_sort()
         self._sorted = not self._sorted
         self._cursor = 0
-        self.virtual_size = Size(self.size.width or 80, max(len(self._store), 1))
+        self._max_content_width = self._compute_max_content_width()
+        self.virtual_size = Size(
+            max(self._max_content_width, self.size.width or 80),
+            max(len(self._store), 1),
+        )
         self.scroll_to(y=0, animate=False)
         self.refresh()
         self.post_message(RecordList.DisplayChanged())
+
+    def action_scroll_left(self) -> None:
+        self.scroll_to(x=max(0, self.scroll_offset.x - _SCROLL_STEP), animate=False)
+        self.refresh()
+
+    def action_scroll_right(self) -> None:
+        max_x = max(0, self.virtual_size.width - self.size.width)
+        self.scroll_to(x=min(self.scroll_offset.x + _SCROLL_STEP, max_x), animate=False)
+        self.refresh()
 
     def action_show_detail(self) -> None:
         if len(self._store) == 0:

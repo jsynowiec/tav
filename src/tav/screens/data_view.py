@@ -273,7 +273,9 @@ class DataViewScreen(Screen):
         record_list = self.query_one(RecordList)
         store = self.app.store  # type: ignore[attr-defined]
         record_list._cursor = 0
+        record_list._max_content_width = record_list._compute_max_content_width()
         record_list.virtual_size = Size(
-            record_list.size.width or 80, max(len(store), 1)
+            max(record_list._max_content_width, record_list.size.width or 80),
+            max(len(store), 1),
         )
         record_list.refresh()
