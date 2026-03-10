@@ -5,7 +5,7 @@ description = "Terminal viewer for JSONL time-series data"
 requires-python = ">=3.12"
 dependencies = [
     "textual>=2.0.0",
-    "jsonpath-ng>=1.6.0",
+    "jmespath>=1.0.0",
 ]
 
 [project.scripts]
