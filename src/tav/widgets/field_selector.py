@@ -69,7 +69,7 @@ def _toggle(
 # FieldSelector widget
 # ---------------------------------------------------------------------------
 
-_CHECKBOX = {"checked": "[X]", "unchecked": "[ ]", "partial": "[-]"}
+_CHECKBOX = {"checked": "\\[x]", "unchecked": "\\[ ]", "partial": "\\[-]"}
 
 
 class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
@@ -79,7 +79,6 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
         Binding("space", "toggle_item", "Toggle", show=False),
         Binding("a", "select_all", "All"),
         Binding("x", "select_none", "None"),
-        Binding("enter", "apply", "Apply"),
         Binding("escape", "cancel", "Cancel"),
     ]
 
@@ -125,9 +124,9 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="container"):
-            yield Static("[a] Select all   [x] Select none", id="hints-top")
+            yield Static("[cyan]a[/cyan] Select all   [cyan]x[/cyan] Select none", id="hints-top")
             yield ListView(*self._build_list_items(), id="field-list")
-            yield Static("Enter: apply  Escape: cancel", id="hints-bottom")
+            yield Static("[cyan]Enter[/cyan]: apply  [cyan]Escape[/cyan]: cancel", id="hints-bottom")
 
     def _build_list_items(self) -> list[ListItem]:
         items = []
@@ -141,9 +140,11 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
 
     def _rebuild_list(self) -> None:
         list_view = self.query_one("#field-list", ListView)
+        saved_index = list_view.index
         list_view.clear()
         for item in self._build_list_items():
             list_view.append(item)
+        list_view.index = min(saved_index, len(self._items) - 1)
 
     def action_toggle_item(self) -> None:
         list_view = self.query_one("#field-list", ListView)
@@ -161,6 +162,9 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
     def action_select_none(self) -> None:
         self._selected = set()
         self._rebuild_list()
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        self.action_apply()
 
     def action_apply(self) -> None:
         self.dismiss(self._selected)
