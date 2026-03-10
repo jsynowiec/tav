@@ -1,0 +1,36 @@
+# ABOUTME: Textual App subclass for tav — the TUI entry point.
+# ABOUTME: Owns shared state (RecordStore, time_field, source_name) and screen registry.
+from textual.app import App, ComposeResult
+
+from tav.store import RecordStore
+from tav.screens.data_view import DataViewScreen
+
+
+class TavApp(App):
+    """Terminal time-series viewer application."""
+
+    CSS = """
+    TavApp {
+        background: $background;
+    }
+    """
+
+    def __init__(
+        self,
+        store: RecordStore,
+        time_field: str | None = None,
+        source_name: str = "<stdin>",
+        start_stats: bool = False,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        self.store = store
+        self.time_field = time_field
+        self.source_name = source_name
+        self.start_stats = start_stats
+
+    def on_mount(self) -> None:
+        self.push_screen(DataViewScreen())
+
+    def action_quit(self) -> None:
+        self.exit()
