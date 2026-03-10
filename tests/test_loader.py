@@ -205,3 +205,19 @@ def test_load_from_string_io():
     assert result.records[0].value == {"a": 1}
     assert result.records[1].kind == KIND_OBJECT
     assert result.records[1].value == {"b": 2}
+
+
+# ---------------------------------------------------------------------------
+# Windows CRLF line endings
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("line_ending", ["\r\n", "\n"])
+def test_crlf_and_lf_line_endings_parsed_correctly(line_ending):
+    lines = ['{"x": 1}', '{"x": 2}', '{"x": 3}']
+    text = line_ending.join(lines) + line_ending
+    result = load_lines(io.StringIO(text))
+    assert len(result.records) == 3
+    for i, rec in enumerate(result.records):
+        assert rec.kind == KIND_OBJECT
+        assert rec.value == {"x": i + 1}
+        assert rec.line_number == i + 1

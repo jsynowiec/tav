@@ -4,25 +4,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from tav.loader import ParsedLine, KIND_OBJECT, KIND_ERROR, KIND_PRIMITIVE
 from tav.store import RecordStore
 from tav.stats import compute_stats, DataStats, TimeStats, FieldStats
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def make_object(line_number, data):
-    return ParsedLine(line_number=line_number, value=data, kind=KIND_OBJECT)
-
-
-def make_error(line_number, raw="bad line"):
-    return ParsedLine(line_number=line_number, value=raw, kind=KIND_ERROR, error="parse error")
-
-
-def make_primitive(line_number, value):
-    return ParsedLine(line_number=line_number, value=value, kind=KIND_PRIMITIVE)
+from tests.conftest import make_object, make_error, make_primitive
 
 
 def _no_op_parser(value):
