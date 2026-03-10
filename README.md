@@ -6,7 +6,6 @@ The Time-Series Viewer, **tav**, is a simple, convenient terminal tool for viewi
 
 ```shell
 git clone https://github.com/jsynowiec/tav && cd tav
-uv sync
 uv run tav
 ```
 

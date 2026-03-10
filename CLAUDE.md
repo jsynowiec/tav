@@ -3,7 +3,7 @@
 ## Standards
 
 - Must comply with the ECMA-404 JSON data standard.
-- Must use valid JSONPath for element query operations.
+- Must use valid JMESPath for element query operations.
 
 ## Testing
 
