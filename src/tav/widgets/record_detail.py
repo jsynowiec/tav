@@ -24,7 +24,7 @@ class RecordDetail(ModalScreen):
     }
 
     RecordDetail > VerticalScroll {
-        width: auto;
+        width: 80%;
         max-width: 120;
         height: auto;
         max-height: 80vh;
