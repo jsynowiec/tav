@@ -83,7 +83,7 @@ class StatsViewScreen(Screen):
         active_filter: str | None = None
         for screen in reversed(self.app.screen_stack):  # type: ignore[attr-defined]
             if isinstance(screen, DataViewScreen):
-                active_filter = screen._active_filter
+                active_filter = screen.active_filter
                 break
 
         lines = Text()

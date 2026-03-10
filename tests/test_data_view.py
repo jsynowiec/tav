@@ -1,5 +1,5 @@
 # ABOUTME: Tests for _apply_command behavior in the data view screen.
-# ABOUTME: Covers store/UI consistency on invalid filter expressions.
+# ABOUTME: Covers store/UI consistency and subtitle format on filter operations.
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
@@ -45,3 +45,20 @@ def test_invalid_filter_after_valid_filter_clears_store():
         assert len(store) == 3
         # _active_filter must be None — not the stale old expression
         assert screen._active_filter is None
+
+
+@pytest.mark.parametrize("expression, expected_count", [
+    ("v == `0`", 1),
+    ("v > `0`", 2),
+])
+def test_subtitle_includes_active_filter_expression(expression, expected_count):
+    """Subtitle must show source, filtered record count, and the filter expression."""
+    lines = [make_object(i + 1, {"v": i}) for i in range(3)]
+    store = RecordStore(lines)
+    screen, mock_app = _make_screen(store)
+
+    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+        screen._apply_command(expression)
+
+    expected_subtitle = f"test.jsonl  {expected_count} records — :{expression}"
+    assert mock_app.sub_title == expected_subtitle

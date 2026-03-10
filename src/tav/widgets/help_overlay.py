@@ -11,6 +11,7 @@ HELP_TEXT = """\
 [bold]Navigation[/bold]
   [cyan]j / ↓[/cyan]      Move down
   [cyan]k / ↑[/cyan]      Move up
+  [cyan]h / l[/cyan]      Scroll left / right
   [cyan]Home[/cyan]       Jump to top
   [cyan]End[/cyan]        Jump to bottom
 

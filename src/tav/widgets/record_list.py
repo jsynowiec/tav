@@ -309,6 +309,7 @@ class RecordList(ScrollView, can_focus=True):
         prefix_len = _LINE_NUM_WIDTH + len(_SEPARATOR)
         offset = prefix_len + pos
         self.scroll_to(x=offset, animate=False)
+        self.refresh()
 
     def action_show_detail(self) -> None:
         if len(self._store) == 0:

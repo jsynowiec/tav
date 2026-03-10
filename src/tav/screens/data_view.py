@@ -114,7 +114,6 @@ class DataViewScreen(Screen):
         if bar.display:
             bar.display = False
             self.post_message(CommandBar.Dismissed())
-            self._focus_record_list()
             return
 
         if self._search_active:
@@ -165,6 +164,10 @@ class DataViewScreen(Screen):
     # ------------------------------------------------------------------
     # Filter and search application
     # ------------------------------------------------------------------
+
+    @property
+    def active_filter(self) -> str | None:
+        return self._active_filter
 
     def _focus_record_list(self) -> None:
         self.query_one(RecordList).focus()

@@ -1,5 +1,5 @@
 # ABOUTME: FieldNav — overlay for navigating to a specific field in the record list
-# ABOUTME: Shows all unique fields; user types to filter, Enter to scroll to first match.
+# ABOUTME: Shows all unique fields; user types to filter, Enter selects first match.
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical

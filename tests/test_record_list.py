@@ -1,10 +1,14 @@
 # ABOUTME: Tests for pure helper functions in the record_list widget.
-# ABOUTME: Covers _colorize_value: content, value types, truncation, and recursive structures.
+# ABOUTME: Covers _colorize_value and scroll_to_field offset calculation.
+import json
 import pytest
 
+from unittest.mock import MagicMock
 from rich.segment import Segment
 
-from tav.widgets.record_list import _colorize_value, _STYLE_KEY
+from tests.conftest import make_object
+from tav.store import RecordStore
+from tav.widgets.record_list import _colorize_value, _LINE_NUM_WIDTH, _SEPARATOR, _STYLE_KEY, RecordList
 
 
 def _text(segments: list[Segment]) -> str:
@@ -96,3 +100,52 @@ def test_colorize_primitive_number():
     result = _colorize_value(42, max_width=20)
     text = _text(result)
     assert "42" in text
+
+
+# ------------------------------------------------------------------
+# scroll_to_field
+# ------------------------------------------------------------------
+
+def _make_record_list(records):
+    """Return a RecordList stub with mocked scroll_to and refresh."""
+    rl = object.__new__(RecordList)
+    rl._store = RecordStore(records)
+    rl._cursor = 0
+    rl._sorted = False
+    rl.scroll_to = MagicMock()
+    rl.refresh = MagicMock()
+    return rl
+
+
+def test_scroll_to_field_computes_correct_offset():
+    """scroll_to_field scrolls to prefix_len + field position in rendered content."""
+    data = {"foo": "bar", "baz": 42}
+    rl = _make_record_list([make_object(1, data)])
+    rl.scroll_to_field("foo")
+    content = json.dumps(data, separators=(",", ":"))
+    pos = content.find('"foo":')
+    expected = _LINE_NUM_WIDTH + len(_SEPARATOR) + pos
+    rl.scroll_to.assert_called_once_with(x=expected, animate=False)
+
+
+def test_scroll_to_field_calls_refresh():
+    """scroll_to_field calls refresh() after scrolling."""
+    rl = _make_record_list([make_object(1, {"alpha": "beta"})])
+    rl.scroll_to_field("alpha")
+    rl.refresh.assert_called_once()
+
+
+def test_scroll_to_field_unknown_field_does_not_scroll():
+    """scroll_to_field is a no-op when the field is absent from the record."""
+    rl = _make_record_list([make_object(1, {"foo": "bar"})])
+    rl.scroll_to_field("nonexistent")
+    rl.scroll_to.assert_not_called()
+    rl.refresh.assert_not_called()
+
+
+def test_scroll_to_field_empty_store_does_not_scroll():
+    """scroll_to_field is a no-op when the store is empty."""
+    rl = _make_record_list([])
+    rl.scroll_to_field("foo")
+    rl.scroll_to.assert_not_called()
+    rl.refresh.assert_not_called()
