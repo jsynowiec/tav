@@ -31,6 +31,9 @@ class TavApp(App):
 
     def on_mount(self) -> None:
         self.push_screen(DataViewScreen())
+        if self.start_stats:
+            from tav.screens.stats_view import StatsViewScreen
+            self.push_screen(StatsViewScreen())
 
     def action_quit(self) -> None:
         self.exit()

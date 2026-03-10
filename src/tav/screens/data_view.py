@@ -78,7 +78,8 @@ class DataViewScreen(Screen):
         self.app.push_screen(FieldNav(fields), callback=self._on_field_nav_dismissed)
 
     def action_toggle_stats(self) -> None:
-        self.app.notify("Stats view coming in next milestone")
+        from tav.screens.stats_view import StatsViewScreen
+        self.app.push_screen(StatsViewScreen())
 
     def action_next_match(self) -> None:
         if not self._match_indices:
