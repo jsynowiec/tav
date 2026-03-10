@@ -9,6 +9,7 @@ from textual.widgets import Footer, Header
 from tav.loader import KIND_OBJECT
 from tav.widgets.command_bar import CommandBar
 from tav.widgets.field_nav import FieldNav
+from tav.widgets.field_selector import FieldSelector
 from tav.widgets.help_overlay import HelpOverlay
 from tav.widgets.record_detail import RecordDetail
 from tav.widgets.record_list import RecordList
@@ -22,6 +23,7 @@ class DataViewScreen(Screen):
         Binding("slash", "open_search", "Search"),
         Binding("question_mark", "open_help", "Help"),
         Binding("g", "open_field_nav", "Go to field"),
+        Binding("f", "open_field_selector", "Fields"),
         Binding("s", "toggle_stats", "Stats"),
         Binding("escape", "handle_escape", "Close"),
         Binding("n", "next_match", "Next match"),
@@ -85,6 +87,18 @@ class DataViewScreen(Screen):
         self._overlay_visible = True
         self.app.push_screen(FieldNav(fields), callback=self._on_field_nav_dismissed)
 
+    def action_open_field_selector(self) -> None:
+        store = self.app.store  # type: ignore[attr-defined]
+        tree = store.field_tree()
+        if not tree:
+            self.app.notify("No fields detected", severity="warning")
+            return
+        self._overlay_visible = True
+        self.app.push_screen(
+            FieldSelector(tree, store.visible_fields),
+            callback=self._on_field_selector_dismissed,
+        )
+
     def action_toggle_stats(self) -> None:
         from tav.screens.stats_view import StatsViewScreen
         self.app.push_screen(StatsViewScreen())
@@ -141,6 +155,14 @@ class DataViewScreen(Screen):
         self._overlay_visible = False
         if result:
             self.query_one(RecordList).scroll_to_field(result)
+
+    def _on_field_selector_dismissed(self, result: set[tuple[str, ...]] | None) -> None:
+        self._overlay_visible = False
+        if result is None:
+            return  # cancelled
+        store = self.app.store  # type: ignore[attr-defined]
+        store.set_visible_fields(result if result else None)
+        self._refresh_record_list()
 
     # ------------------------------------------------------------------
     # CommandBar message handlers

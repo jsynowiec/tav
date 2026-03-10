@@ -20,6 +20,7 @@ HELP_TEXT = """\
   [cyan]a[/cyan]          Toggle objects-only / all-lines mode
   [cyan]o[/cyan]          Sort by time / restore file order
   [cyan]g[/cyan]          Go-to-field navigator
+  [cyan]f[/cyan]          Field selector (toggle visible fields)
 
 [bold]Search & Filter[/bold]
   [cyan]/[/cyan]          Search mode (text / regex)
