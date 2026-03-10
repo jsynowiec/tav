@@ -99,6 +99,63 @@ def test_filter_numeric_comparison():
     assert result == [1, 2]
 
 
+def test_filter_bare_integer_error_suggests_backticks():
+    store = make_store([{"series": 88665234}])
+    with pytest.raises(ValueError, match="backtick"):
+        filter_records(store, "series == 88665234")
+
+
+def test_filter_bare_float_error_suggests_backticks():
+    store = make_store([{"value": 3.14}])
+    with pytest.raises(ValueError, match="backtick"):
+        filter_records(store, "value == 3.14")
+
+
+def test_filter_bare_true_warns_not_literal():
+    store = make_store([{"active": True}])
+    with pytest.raises(ValueError, match="field name") as exc_info:
+        filter_records(store, "active == true")
+    assert "backtick" in str(exc_info.value)
+
+
+def test_filter_bare_false_warns_not_literal():
+    store = make_store([{"active": False}])
+    with pytest.raises(ValueError):
+        filter_records(store, "active == false")
+
+
+def test_filter_bare_null_warns_not_literal():
+    store = make_store([{"field": None}])
+    with pytest.raises(ValueError):
+        filter_records(store, "field == null")
+
+
+def test_filter_backtick_true_works():
+    store = make_store([
+        {"active": True},
+        {"active": False},
+        {"active": "true"},
+    ])
+    result = filter_records(store, "active == `true`")
+    assert result == [0]
+
+
+def test_filter_backtick_number_equality():
+    store = make_store([
+        {"value": 42},
+        {"value": 43},
+    ])
+    result = filter_records(store, "value == `42`")
+    assert result == [0]
+
+
+def test_filter_field_named_true_raises_warning():
+    # Field names like "true" are pathological; the warning fires regardless
+    store = make_store([{"true": "yes"}])
+    with pytest.raises(ValueError):
+        filter_records(store, "true == 'yes'")
+
+
 # ---------------------------------------------------------------------------
 # search_records
 # ---------------------------------------------------------------------------

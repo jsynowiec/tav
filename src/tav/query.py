@@ -12,6 +12,17 @@ if TYPE_CHECKING:
 
 from tav.loader import KIND_OBJECT
 
+_BARE_LITERAL_NAMES = {"true", "false", "null"}
+
+
+def _walk_comparators(node: dict, found: list[str]) -> None:
+    if node.get("type") == "comparator":
+        for child in node.get("children", []):
+            if child.get("type") == "field" and child.get("value") in _BARE_LITERAL_NAMES:
+                found.append(child["value"])
+    for child in node.get("children", []):
+        _walk_comparators(child, found)
+
 
 def filter_records(store: "RecordStore", expression: str) -> list[int]:
     """
@@ -34,7 +45,19 @@ def filter_records(store: "RecordStore", expression: str) -> list[int]:
     try:
         compiled = jmespath.compile(expr)
     except jmespath.exceptions.ParseError as e:
-        raise ValueError(f"Invalid expression: {e}") from e
+        raise ValueError(
+            f"Invalid filter: {e}\n"
+            "Hint: use backticks for numbers, e.g. field == `42`"
+        ) from e
+
+    bare = []
+    _walk_comparators(compiled.parsed, bare)
+    if bare:
+        names = ", ".join(bare)
+        raise ValueError(
+            f"Likely mistake: {names} is compared as a field name, not a literal. "
+            "Use backticks for literals, e.g. field == `true`"
+        )
 
     # Collect (store_index, value) for all visible object records
     indexed_values: list[tuple[int, dict]] = []
