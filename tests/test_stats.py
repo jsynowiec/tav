@@ -256,3 +256,35 @@ def test_error_count_in_data_stats():
     result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
     assert result.error_count == 2
     assert result.object_count == 1
+
+
+# ---------------------------------------------------------------------------
+# 14. field value_type string, boolean, null (parametrized)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("val,expected_type", [
+    ("hello", "string"),
+    (True, "boolean"),
+    (False, "boolean"),
+    (None, "null"),
+])
+def test_field_value_type_parametrized(val, expected_type):
+    lines = [make_object(i + 1, {"x": val}) for i in range(3)]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    assert result.field_stats[0].value_type == expected_type
+
+
+# ---------------------------------------------------------------------------
+# 15. field cardinality medium boundary (10 unique values)
+# ---------------------------------------------------------------------------
+
+def test_field_cardinality_medium_at_boundary():
+    # exactly 10 unique values → medium (boundary: <10 is low, <=100 is medium)
+    lines = [make_object(i + 1, {"id": i}) for i in range(10)]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    fs = result.field_stats[0]
+    assert fs.cardinality == "medium"
+    assert fs.unique_count == 10
+    assert fs.value_counts is not None

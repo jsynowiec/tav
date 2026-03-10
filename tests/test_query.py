@@ -89,6 +89,16 @@ def test_filter_nested_path():
     assert result == [0, 2]
 
 
+def test_filter_numeric_comparison():
+    store = make_store([
+        {"value": 10},
+        {"value": 20},
+        {"value": 30},
+    ])
+    result = filter_records(store, "value > `15`")
+    assert result == [1, 2]
+
+
 # ---------------------------------------------------------------------------
 # search_records
 # ---------------------------------------------------------------------------
@@ -126,6 +136,12 @@ def test_search_raises_on_invalid_regex():
     store = make_store([{"a": 1}])
     with pytest.raises(ValueError):
         search_records(store, "[unclosed")
+
+
+def test_search_raises_on_empty_pattern():
+    store = make_store([{"a": 1}])
+    with pytest.raises(ValueError):
+        search_records(store, "")
 
 
 def test_search_includes_non_object_records():

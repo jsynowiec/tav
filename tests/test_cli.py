@@ -121,6 +121,14 @@ def test_time_field_flag_warns_no_match(tmp_path):
     assert result.stderr  # warning printed
 
 
+def test_time_field_dollar_prefix_normalized(tmp_path):
+    """$.timestamp should be stripped to 'timestamp' and match without warning."""
+    p = make_jsonl(tmp_path, [{"timestamp": "2024-01-01T00:00:00Z", "value": 1}])
+    result = run_tav(str(p), "--time-field", "$.timestamp")
+    assert result.returncode == 0
+    assert "did not match" not in result.stderr
+
+
 # ---------------------------------------------------------------------------
 # --stats flag
 # ---------------------------------------------------------------------------
