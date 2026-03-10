@@ -40,8 +40,8 @@ class DataViewScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
         yield RecordList(self.app.store)  # type: ignore[attr-defined]
-        yield CommandBar()
         yield Footer()
+        yield CommandBar()
 
     def on_mount(self) -> None:
         store = self.app.store  # type: ignore[attr-defined]
