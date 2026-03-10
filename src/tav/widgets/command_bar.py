@@ -31,6 +31,9 @@ class CommandBar(Widget):
         background: $surface;
         color: $text;
     }
+    CommandBar Input:focus {
+        border: none;
+    }
     """
 
     class CommandSubmitted(Message):
