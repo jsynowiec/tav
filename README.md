@@ -20,12 +20,12 @@ uv run tav
 tav [INPUT] [OPTIONS]
 
 Arguments:
-  INPUT    Path to input JSONL file including TSS data. Omit or use '-' for stdin.
+  INPUT    Path to input JSONL file. Omit or use '-' for stdin.
 
 Options:
   -h, --help            show this help message and exit
-  --time-field JSONPATH
-                        JSONPath pointing to the timestamp field (e.g. timestamp or $.timestamp)
+  --time-field FIELD
+                        Dot-path to the timestamp field (e.g. timestamp or $.timestamp)
   --stats               Start in the stats view
   --version             show program's version number and exit
 ```

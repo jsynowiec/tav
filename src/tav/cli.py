@@ -49,8 +49,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--time-field",
-        metavar="JSONPATH",
-        help="JSONPath pointing to the timestamp field (e.g. timestamp or $.timestamp)",
+        metavar="FIELD",
+        help="Dot-path to the timestamp field (e.g. timestamp or $.timestamp)",
     )
     parser.add_argument(
         "--timezone",
