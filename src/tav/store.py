@@ -34,6 +34,8 @@ class RecordStore:
         self._sort_key: list[int] | None = None  # permutation indices into base list
         self._cache: list[ParsedLine] | None = None
         self._visible_fields: set[tuple[str, ...]] | None = None
+        self._object_count = sum(1 for r in self._source if r.kind == KIND_OBJECT)
+        self._error_count = sum(1 for r in self._source if r.kind == KIND_ERROR)
 
     # ------------------------------------------------------------------
     # Dunder protocol
@@ -130,11 +132,11 @@ class RecordStore:
 
     @property
     def object_count(self) -> int:
-        return sum(1 for r in self._source if r.kind == KIND_OBJECT)
+        return self._object_count
 
     @property
     def error_count(self) -> int:
-        return sum(1 for r in self._source if r.kind == KIND_ERROR)
+        return self._error_count
 
     # ------------------------------------------------------------------
     # Internal
