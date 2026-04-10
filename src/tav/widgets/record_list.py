@@ -62,7 +62,11 @@ def _colorize_value(
         total += len(text)
         return True
 
-    def _render(val, path: tuple[str, ...] = ()) -> bool:
+    _MAX_DEPTH = 20
+
+    def _render(val, path: tuple[str, ...] = (), depth: int = 0) -> bool:
+        if depth > _MAX_DEPTH:
+            return _append("...", Style(dim=True))
         if isinstance(val, dict):
             if not _append("{", Style()):
                 return False
@@ -72,7 +76,7 @@ def _colorize_value(
             for i, (k, v) in enumerate(items):
                 if not _append(f'"{k}":', _STYLE_KEY):
                     return False
-                if not _render(v, path + (k,)):
+                if not _render(v, path + (k,), depth + 1):
                     return False
                 if i < len(items) - 1:
                     if not _append(",", Style()):
@@ -82,7 +86,7 @@ def _colorize_value(
             if not _append("[", Style()):
                 return False
             for i, item in enumerate(val):
-                if not _render(item, path):
+                if not _render(item, path, depth + 1):
                     return False
                 if i < len(val) - 1:
                     if not _append(",", Style()):

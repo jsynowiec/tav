@@ -226,3 +226,16 @@ def test_colorize_array_of_objects_with_visible_fields():
     assert "1" in text
     assert '"y":' not in text
     assert "{}" not in text
+
+
+def test_colorize_deeply_nested_truncates_at_depth_limit():
+    """Nesting beyond depth limit renders ellipsis without crashing."""
+    val = {}
+    inner = val
+    for i in range(25):
+        inner[f"l{i}"] = {}
+        inner = inner[f"l{i}"]
+    inner["leaf"] = 1
+    result = _colorize_value(val, max_width=500)
+    text = _text(result)
+    assert "..." in text
