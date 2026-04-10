@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import pytest
 
 from tav.store import RecordStore
-from tav.stats import compute_stats, DataStats, TimeStats, FieldStats
+from tav.stats import compute_stats, DataStats
 from tests.conftest import make_object, make_error, make_primitive
 
 

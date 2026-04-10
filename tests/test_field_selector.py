@@ -1,7 +1,5 @@
 # ABOUTME: Tests for FieldSelector widget — flatten, toggle, select all/none, parent state.
 # ABOUTME: Exercises pure logic functions without launching a full Textual app.
-import pytest
-
 from tav.store import FieldTree
 from tav.widgets.field_selector import _flatten, _check_state, _toggle
 
