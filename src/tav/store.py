@@ -1,7 +1,5 @@
 # ABOUTME: In-memory record store for JSONL time-series data with filtering, sorting, and line mode.
 # ABOUTME: Wraps a list of ParsedLine records and exposes a filtered/sorted view.
-from __future__ import annotations
-
 from typing import Callable, Any
 
 from tav.loader import ParsedLine, KIND_OBJECT, KIND_ERROR

@@ -5,7 +5,7 @@ import pytest
 from tav.time_detect import detect_time_field
 
 
-def ts(i: int) -> str:
+def _ts(i: int) -> str:
     """Build a valid ISO timestamp for test data."""
     return f"2024-01-{i % 28 + 1:02d}T{i % 24:02d}:00:00Z"
 
@@ -15,7 +15,7 @@ def ts(i: int) -> str:
 # ---------------------------------------------------------------------------
 
 def test_detects_by_common_name():
-    records = [{"timestamp": ts(i), "val": i} for i in range(10)]
+    records = [{"timestamp": _ts(i), "val": i} for i in range(10)]
     assert detect_time_field(records) == "timestamp"
 
 
@@ -29,7 +29,7 @@ def test_detects_by_common_name():
     "@timestamp",
 ])
 def test_detects_various_canonical_names(field_name):
-    records = [{"val": i, field_name: ts(i)} for i in range(10)]
+    records = [{"val": i, field_name: _ts(i)} for i in range(10)]
     assert detect_time_field(records) == field_name
 
 
@@ -79,8 +79,8 @@ def test_empty_records_returns_none():
 def test_sample_size_limits_scanning():
     # First 5 records have a canonical timestamp; records 6-100 have a
     # different field. With sample_size=5 we still detect the first field.
-    records = [{"timestamp": ts(i), "val": i} for i in range(5)]
-    records += [{"other_ts": ts(i), "val": i} for i in range(5, 100)]
+    records = [{"timestamp": _ts(i), "val": i} for i in range(5)]
+    records += [{"other_ts": _ts(i), "val": i} for i in range(5, 100)]
     assert detect_time_field(records, sample_size=5) == "timestamp"
 
 
@@ -91,7 +91,7 @@ def test_sample_size_limits_scanning():
 def test_prefers_name_heuristic_over_value():
     # "ts" matches the name heuristic; "sensor_ts" only matches value heuristic.
     epoch = 1705314600
-    records = [{"ts": ts(i), "sensor_ts": epoch + i} for i in range(10)]
+    records = [{"ts": _ts(i), "sensor_ts": epoch + i} for i in range(10)]
     assert detect_time_field(records) == "ts"
 
 
@@ -104,7 +104,7 @@ def test_sparse_records_tolerate_missing_field():
     records = []
     for i in range(10):
         if i % 2 == 0:
-            records.append({"timestamp": ts(i), "val": i})
+            records.append({"timestamp": _ts(i), "val": i})
         else:
             records.append({"val": i})
     assert detect_time_field(records) == "timestamp"
@@ -122,5 +122,5 @@ def test_sparse_records_tolerate_missing_field():
     "TS",
 ])
 def test_case_insensitive_name_match(field_name):
-    records = [{field_name: ts(i), "val": i} for i in range(10)]
+    records = [{field_name: _ts(i), "val": i} for i in range(10)]
     assert detect_time_field(records) == field_name

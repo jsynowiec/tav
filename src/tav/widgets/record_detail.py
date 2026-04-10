@@ -1,7 +1,5 @@
 # ABOUTME: RecordDetail — modal overlay for pretty-printing a single JSONL record.
 # ABOUTME: Shown when the user presses Enter on a record; dismissed with Escape or Enter.
-from __future__ import annotations
-
 import json
 
 from rich.json import JSON

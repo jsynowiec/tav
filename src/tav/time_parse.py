@@ -1,7 +1,5 @@
 # ABOUTME: Parses timestamp values from various formats into datetime objects.
 # ABOUTME: Supports Unix epoch (seconds/ms), ISO 8601, and common strptime formats.
-from __future__ import annotations
-
 from datetime import datetime, timezone, tzinfo as TzInfo
 from typing import Any, Callable
 

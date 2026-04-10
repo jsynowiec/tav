@@ -1,7 +1,5 @@
 # ABOUTME: FieldSelector — modal overlay for toggling individual fields on/off in the record list.
 # ABOUTME: Returns the selected field path set, or None if cancelled.
-from __future__ import annotations
-
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Vertical

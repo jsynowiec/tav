@@ -1,5 +1,6 @@
 # ABOUTME: CommandBar — dual-mode input bar for command and search entry.
 # ABOUTME: ':' activates command mode (JMESPath filter); '/' activates search mode.
+from textual import events
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.message import Message
@@ -96,7 +97,7 @@ class CommandBar(Widget):
             else:
                 self.post_message(self.SearchSubmitted(value))
 
-    def on_key(self, event) -> None:
+    def on_key(self, event: events.Key) -> None:
         if event.key == "escape":
             self.display = False
             self.post_message(self.Dismissed())

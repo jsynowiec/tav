@@ -1,7 +1,5 @@
 # ABOUTME: Auto-detects which top-level field in JSONL records holds the timestamp.
 # ABOUTME: Uses name heuristics first, then falls back to value-parse heuristics.
-from __future__ import annotations
-
 from tav.time_parse import parse_timestamp
 
 _CANONICAL_NAMES: frozenset[str] = frozenset({

@@ -1,7 +1,5 @@
 # ABOUTME: Virtual-scrolling record list widget for tav.
 # ABOUTME: Renders JSONL records line-by-line using ScrollView.render_line for performance.
-from __future__ import annotations
-
 import json
 
 from rich.segment import Segment
@@ -132,16 +130,16 @@ class RecordList(ScrollView, can_focus=True):
     """
 
     BINDINGS = [
-        ("j", "cursor_down", "Down"),
-        ("k", "cursor_up", "Up"),
-        ("down", "cursor_down", "Down"),
-        ("up", "cursor_up", "Up"),
-        ("left", "scroll_left", "Left"),
-        ("right", "scroll_right", "Right"),
-        ("h", "scroll_left", "Left"),
-        ("l", "scroll_right", "Right"),
-        ("home", "cursor_top", "Top"),
-        ("end", "cursor_bottom", "Bottom"),
+        Binding("j", "cursor_down", "Down"),
+        Binding("k", "cursor_up", "Up"),
+        Binding("down", "cursor_down", "Down"),
+        Binding("up", "cursor_up", "Up"),
+        Binding("left", "scroll_left", "Left"),
+        Binding("right", "scroll_right", "Right"),
+        Binding("h", "scroll_left", "Left"),
+        Binding("l", "scroll_right", "Right"),
+        Binding("home", "cursor_top", "Top"),
+        Binding("end", "cursor_bottom", "Bottom"),
         Binding("a", "toggle_line_mode", "All lines", show=True),
         Binding("o", "toggle_sort", "Sort", show=True),
         Binding("enter", "show_detail", "Detail", show=True),

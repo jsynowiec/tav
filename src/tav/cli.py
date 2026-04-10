@@ -1,7 +1,5 @@
 # ABOUTME: CLI entry point for tav, handling argument parsing and data loading.
 # ABOUTME: Reads JSONL from a file or stdin, builds a RecordStore, and launches the TUI.
-from __future__ import annotations
-
 import argparse
 import os
 import sys

@@ -1,15 +1,15 @@
 # ABOUTME: StatsViewScreen — displays computed statistics for the loaded dataset
 # ABOUTME: Shows time range, field completeness table, and value distributions.
-from __future__ import annotations
-
-from textual.app import ComposeResult
-from textual.binding import Binding
-from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
-from textual.containers import VerticalScroll
+from rich import box
 from rich.table import Table
 from rich.text import Text
-from rich import box
+from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import VerticalScroll
+from textual.screen import Screen
+from textual.widgets import Footer, Header, Static
+
+from tav.stats import DataStats
 
 
 def _format_span(seconds: float) -> str:
@@ -68,13 +68,13 @@ class StatsViewScreen(Screen):
         )
         self._render_stats(data_stats)
 
-    def _render_stats(self, data_stats) -> None:
+    def _render_stats(self, data_stats: DataStats) -> None:
         """Populate the scrollable container with stats widgets."""
         self._render_overview(data_stats)
         self._render_time_stats(data_stats)
         self._render_field_stats(data_stats)
 
-    def _render_overview(self, data_stats) -> None:
+    def _render_overview(self, data_stats: DataStats) -> None:
         from tav.screens.data_view import DataViewScreen
 
         source_name = self.app.source_name  # type: ignore[attr-defined]
@@ -105,7 +105,7 @@ class StatsViewScreen(Screen):
 
         self.query_one("#overview-section", Static).update(lines)
 
-    def _render_time_stats(self, data_stats) -> None:
+    def _render_time_stats(self, data_stats: DataStats) -> None:
         ts = data_stats.time_stats
         if ts is None:
             self.query_one("#time-section", Static).update("")
@@ -127,7 +127,7 @@ class StatsViewScreen(Screen):
 
         self.query_one("#time-section", Static).update(lines)
 
-    def _render_field_stats(self, data_stats) -> None:
+    def _render_field_stats(self, data_stats: DataStats) -> None:
         if not data_stats.field_stats:
             self.query_one("#fields-section", Static).update("")
             return

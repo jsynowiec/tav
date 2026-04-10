@@ -11,7 +11,7 @@ from tav.query import filter_records, search_records
 # Helpers
 # ---------------------------------------------------------------------------
 
-def make_store(records: list[dict], with_errors=False):
+def _make_store(records: list[dict], with_errors=False):
     lines = [ParsedLine(line_number=i+1, value=r, kind=KIND_OBJECT) for i, r in enumerate(records)]
     if with_errors:
         lines.append(ParsedLine(line_number=len(lines)+1, value="bad json", kind=KIND_ERROR, error="parse error"))
@@ -25,7 +25,7 @@ def make_store(records: list[dict], with_errors=False):
 # ---------------------------------------------------------------------------
 
 def test_filter_matches_simple_field():
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1", "value": 10},
         {"sensor_id": "sensor_2", "value": 20},
         {"sensor_id": "sensor_1", "value": 30},
@@ -35,7 +35,7 @@ def test_filter_matches_simple_field():
 
 
 def test_filter_explicit_bracket_syntax():
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1", "value": 10},
         {"sensor_id": "sensor_2", "value": 20},
         {"sensor_id": "sensor_1", "value": 30},
@@ -45,7 +45,7 @@ def test_filter_explicit_bracket_syntax():
 
 
 def test_filter_returns_empty_for_no_match():
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1"},
         {"sensor_id": "sensor_2"},
     ])
@@ -54,13 +54,13 @@ def test_filter_returns_empty_for_no_match():
 
 
 def test_filter_raises_on_invalid_expression():
-    store = make_store([{"a": 1}])
+    store = _make_store([{"a": 1}])
     with pytest.raises(ValueError):
         filter_records(store, "$.[[[invalid")
 
 
 def test_filter_raises_on_empty_expression():
-    store = make_store([{"a": 1}])
+    store = _make_store([{"a": 1}])
     with pytest.raises(ValueError):
         filter_records(store, "")
 
@@ -80,7 +80,7 @@ def test_filter_skips_non_object_records():
 
 
 def test_filter_nested_path():
-    store = make_store([
+    store = _make_store([
         {"metadata": {"source": "alpha"}, "v": 1},
         {"metadata": {"source": "beta"}, "v": 2},
         {"metadata": {"source": "alpha"}, "v": 3},
@@ -90,7 +90,7 @@ def test_filter_nested_path():
 
 
 def test_filter_numeric_comparison():
-    store = make_store([
+    store = _make_store([
         {"value": 10},
         {"value": 20},
         {"value": 30},
@@ -100,38 +100,38 @@ def test_filter_numeric_comparison():
 
 
 def test_filter_bare_integer_error_suggests_backticks():
-    store = make_store([{"series": 88665234}])
+    store = _make_store([{"series": 88665234}])
     with pytest.raises(ValueError, match="backtick"):
         filter_records(store, "series == 88665234")
 
 
 def test_filter_bare_float_error_suggests_backticks():
-    store = make_store([{"value": 3.14}])
+    store = _make_store([{"value": 3.14}])
     with pytest.raises(ValueError, match="backtick"):
         filter_records(store, "value == 3.14")
 
 
 def test_filter_bare_true_warns_not_literal():
-    store = make_store([{"active": True}])
+    store = _make_store([{"active": True}])
     with pytest.raises(ValueError, match="field name") as exc_info:
         filter_records(store, "active == true")
     assert "backtick" in str(exc_info.value)
 
 
 def test_filter_bare_false_warns_not_literal():
-    store = make_store([{"active": False}])
+    store = _make_store([{"active": False}])
     with pytest.raises(ValueError):
         filter_records(store, "active == false")
 
 
 def test_filter_bare_null_warns_not_literal():
-    store = make_store([{"field": None}])
+    store = _make_store([{"field": None}])
     with pytest.raises(ValueError):
         filter_records(store, "field == null")
 
 
 def test_filter_backtick_true_works():
-    store = make_store([
+    store = _make_store([
         {"active": True},
         {"active": False},
         {"active": "true"},
@@ -141,7 +141,7 @@ def test_filter_backtick_true_works():
 
 
 def test_filter_backtick_number_equality():
-    store = make_store([
+    store = _make_store([
         {"value": 42},
         {"value": 43},
     ])
@@ -151,7 +151,7 @@ def test_filter_backtick_number_equality():
 
 def test_filter_field_named_true_raises_warning():
     # Field names like "true" are pathological; the warning fires regardless
-    store = make_store([{"true": "yes"}])
+    store = _make_store([{"true": "yes"}])
     with pytest.raises(ValueError):
         filter_records(store, "true == 'yes'")
 
@@ -161,7 +161,7 @@ def test_filter_field_named_true_raises_warning():
 # ---------------------------------------------------------------------------
 
 def test_search_finds_text_match():
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1", "value": 10},
         {"sensor_id": "sensor_2", "value": 20},
         {"sensor_id": "sensor_1", "value": 30},
@@ -171,7 +171,7 @@ def test_search_finds_text_match():
 
 
 def test_search_is_case_insensitive():
-    store = make_store([
+    store = _make_store([
         {"name": "alice"},
         {"name": "Bob"},
         {"name": "CHARLIE"},
@@ -181,7 +181,7 @@ def test_search_is_case_insensitive():
 
 
 def test_search_returns_empty_for_no_match():
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1"},
         {"sensor_id": "sensor_2"},
     ])
@@ -190,13 +190,13 @@ def test_search_returns_empty_for_no_match():
 
 
 def test_search_raises_on_invalid_regex():
-    store = make_store([{"a": 1}])
+    store = _make_store([{"a": 1}])
     with pytest.raises(ValueError):
         search_records(store, "[unclosed")
 
 
 def test_search_raises_on_empty_pattern():
-    store = make_store([{"a": 1}])
+    store = _make_store([{"a": 1}])
     with pytest.raises(ValueError):
         search_records(store, "")
 
@@ -215,7 +215,7 @@ def test_search_includes_non_object_records():
 
 def test_filter_does_not_leak_sentinel_key():
     """After filtering, no record should contain internal sentinel keys."""
-    store = make_store([
+    store = _make_store([
         {"sensor_id": "sensor_1", "value": 10},
         {"sensor_id": "sensor_2", "value": 20},
     ])
@@ -227,7 +227,7 @@ def test_filter_does_not_leak_sentinel_key():
 
 def test_filter_distinguishes_duplicate_records():
     """Records with identical content should be distinguished by position."""
-    store = make_store([
+    store = _make_store([
         {"x": 1},
         {"x": 1},
         {"x": 2},
@@ -238,7 +238,7 @@ def test_filter_distinguishes_duplicate_records():
 
 
 def test_search_uses_serialized_json():
-    store = make_store([
+    store = _make_store([
         {"timestamp": "2024-01-01T00:00:00Z", "value": 100},
         {"timestamp": "2024-06-15T12:00:00Z", "value": 200},
     ])

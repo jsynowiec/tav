@@ -1,7 +1,5 @@
 # ABOUTME: Pure functions for computing statistics over a RecordStore.
 # ABOUTME: Returns DataStats, TimeStats, and FieldStats — no UI imports.
-from __future__ import annotations
-
 import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -65,7 +63,7 @@ def compute_stats(
 
 
 def _compute_time_stats(
-    objects: list,
+    objects: list[Any],
     time_field: str | None,
     time_parser: Callable[[Any], datetime | None],
 ) -> TimeStats | None:
@@ -110,7 +108,7 @@ def _python_type_to_value_type(value: Any) -> str:
     return "mixed"
 
 
-def _compute_field_stats(objects: list) -> list[FieldStats]:
+def _compute_field_stats(objects: list[Any]) -> list[FieldStats]:
     if not objects:
         return []
 
