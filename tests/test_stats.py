@@ -259,6 +259,29 @@ def test_field_value_type_parametrized(val, expected_type):
     assert result.field_stats[0].value_type == expected_type
 
 
+def test_field_value_type_object():
+    lines = [make_object(i + 1, {"x": {"nested": i}}) for i in range(3)]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    assert result.field_stats[0].value_type == "object"
+
+
+def test_field_value_type_array():
+    lines = [make_object(i + 1, {"x": [i, i + 1]}) for i in range(3)]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    assert result.field_stats[0].value_type == "array"
+
+
+def test_field_stats_handles_non_serializable_value():
+    """Fields with non-JSON-serializable values should not crash stats computation."""
+    from datetime import datetime as dt
+    lines = [make_object(1, {"x": dt(2024, 1, 1)})]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    assert len(result.field_stats) == 1
+
+
 # ---------------------------------------------------------------------------
 # 15. field cardinality medium boundary (10 unique values)
 # ---------------------------------------------------------------------------

@@ -103,6 +103,10 @@ def _python_type_to_value_type(value: Any) -> str:
         return "string"
     if value is None:
         return "null"
+    if isinstance(value, dict):
+        return "object"
+    if isinstance(value, list):
+        return "array"
     return "mixed"
 
 
@@ -129,7 +133,7 @@ def _compute_field_stats(objects: list) -> list[FieldStats]:
             present_count += 1
             val = rec.value[field_name]
             type_set.add(_python_type_to_value_type(val))
-            key = json.dumps(val, ensure_ascii=False)
+            key = json.dumps(val, ensure_ascii=False, default=str)
             value_counts[key] = value_counts.get(key, 0) + 1
 
         completeness = present_count / total if total > 0 else 0.0
