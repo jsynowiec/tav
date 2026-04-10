@@ -57,6 +57,10 @@ class RecordStore:
     # Filtering
     # ------------------------------------------------------------------
 
+    @property
+    def predicate(self) -> Callable[[ParsedLine], bool] | None:
+        return self._predicate
+
     def apply_filter(self, predicate: Callable[[ParsedLine], bool]) -> None:
         self._predicate = predicate
         self._invalidate()

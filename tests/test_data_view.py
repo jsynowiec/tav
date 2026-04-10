@@ -28,8 +28,8 @@ def _make_screen(store):
     return screen, mock_app
 
 
-def test_invalid_filter_after_valid_filter_clears_store():
-    """Applying an invalid filter after a valid one must leave the store unfiltered."""
+def test_invalid_filter_preserves_previous_filter():
+    """Applying an invalid filter after a valid one must preserve the old filter."""
     lines = [make_object(i + 1, {"v": i}) for i in range(3)]
     store = RecordStore(lines)
     screen, mock_app = _make_screen(store)
@@ -38,14 +38,25 @@ def test_invalid_filter_after_valid_filter_clears_store():
         # Apply a valid filter first — store shrinks to 1 record
         screen._apply_command("v == `0`")
         assert len(store) == 1
-        assert screen._active_filter is not None
+        assert screen._active_filter == "v == `0`"
 
         # Now apply an invalid JMESPath expression
         screen._apply_command("[?invalid[[[")
 
-        # Store must show all records — filter was cleared, not silently lost
+        # Old filter must be preserved, not cleared
+        assert len(store) == 1
+        assert screen._active_filter == "v == `0`"
+
+
+def test_invalid_filter_with_no_previous_filter_stays_unfiltered():
+    """An invalid filter with no active filter leaves store unfiltered."""
+    lines = [make_object(i + 1, {"v": i}) for i in range(3)]
+    store = RecordStore(lines)
+    screen, mock_app = _make_screen(store)
+
+    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+        screen._apply_command("[?invalid[[[")
         assert len(store) == 3
-        # _active_filter must be None — not the stale old expression
         assert screen._active_filter is None
 
 

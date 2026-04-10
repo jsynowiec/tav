@@ -205,12 +205,16 @@ class DataViewScreen(Screen):
             return
 
         store = self.app.store  # type: ignore[attr-defined]
+        old_predicate = store.predicate
+        old_active = self._active_filter
         store.clear_filter()
         try:
             match_indices = filter_records(store, expression)
         except ValueError as e:
+            if old_predicate is not None:
+                store.apply_filter(old_predicate)
+            self._active_filter = old_active
             self.app.notify(f"Invalid filter: {e}", severity="error")
-            self._active_filter = None
             self._refresh_record_list()
             source_name = self.app.source_name  # type: ignore[attr-defined]
             self.app.sub_title = f"{source_name}  {len(store)} records"
