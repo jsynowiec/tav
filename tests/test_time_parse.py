@@ -83,17 +83,17 @@ def test_iso8601_with_timezone_returns_utc_datetime(value, expected):
 @pytest.mark.parametrize("value, expected", [
     (
         "2024-01-15T10:30:00",
-        datetime(2024, 1, 15, 10, 30, 0),
+        datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
     ),
     (
         "2024-01-15",
-        datetime(2024, 1, 15, 0, 0, 0),
+        datetime(2024, 1, 15, 0, 0, 0, tzinfo=timezone.utc),
     ),
 ])
-def test_iso8601_without_timezone_returns_naive_datetime(value, expected):
+def test_iso8601_without_timezone_returns_utc_datetime(value, expected):
     result = parse_timestamp(value)
     assert result == expected
-    assert result.tzinfo is None
+    assert result.tzinfo == timezone.utc
 
 
 # ---------------------------------------------------------------------------
@@ -103,21 +103,21 @@ def test_iso8601_without_timezone_returns_naive_datetime(value, expected):
 @pytest.mark.parametrize("value, expected", [
     (
         "2024-01-15 10:30:00",
-        datetime(2024, 1, 15, 10, 30, 0),
+        datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
     ),
     (
         "2024-01-15 10:30:00.123456",
-        datetime(2024, 1, 15, 10, 30, 0, 123456),
+        datetime(2024, 1, 15, 10, 30, 0, 123456, tzinfo=timezone.utc),
     ),
     (
         "15/01/2024 10:30:00",
-        datetime(2024, 1, 15, 10, 30, 0),
+        datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc),
     ),
 ])
 def test_strptime_fallback_formats_parsed_correctly(value, expected):
     result = parse_timestamp(value)
     assert result == expected
-    assert result.tzinfo is None
+    assert result.tzinfo == timezone.utc
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +167,28 @@ def test_tz_aware_string_normalized_to_utc():
 # Naive preserved: naive input → tzinfo is None
 # ---------------------------------------------------------------------------
 
-def test_naive_string_preserves_no_timezone():
+def test_naive_string_normalized_to_utc():
     result = parse_timestamp("2024-01-15T10:30:00")
     assert result is not None
-    assert result.tzinfo is None
+    assert result.tzinfo == timezone.utc
+
+
+# ---------------------------------------------------------------------------
+# All parseable inputs → UTC-aware or None
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("value", [
+    1705314600,                     # epoch seconds
+    1705314600000,                  # epoch milliseconds
+    1705314600.5,                   # epoch float
+    "2024-01-15T10:30:00Z",        # ISO with Z
+    "2024-01-15T10:30:00+05:00",   # ISO with offset
+    "2024-01-15T10:30:00",         # ISO without tz
+    "2024-01-15",                   # ISO date only
+    "2024-01-15 10:30:00",         # strptime format
+    "15/01/2024 10:30:00",         # strptime dd/mm/yyyy
+])
+def test_parse_timestamp_always_returns_utc_aware_or_none(value):
+    result = parse_timestamp(value)
+    assert result is not None
+    assert result.tzinfo == timezone.utc

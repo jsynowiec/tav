@@ -62,3 +62,23 @@ def test_subtitle_includes_active_filter_expression(expression, expected_count):
 
     expected_subtitle = f"test.jsonl  {expected_count} records — :{expression}"
     assert mock_app.sub_title == expected_subtitle
+
+
+def test_time_filter_works_across_formats():
+    """Time filter matches records regardless of timestamp format (epoch, ISO, strptime)."""
+    lines = [
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),       # aware ISO
+        make_object(2, {"ts": "2024-01-03T00:00:00"}),         # naive ISO
+        make_object(3, {"ts": 1704240000}),                     # epoch (2024-01-03 00:00:00 UTC)
+        make_object(4, {"ts": "2024-01-05 00:00:00"}),          # strptime
+    ]
+    store = RecordStore(lines)
+    screen, mock_app = _make_screen(store)
+    mock_app.time_field = "ts"
+
+    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+        screen._apply_time_filter("2024-01-02", "after")
+
+    assert len(store) == 3
+    line_nums = {store[i].line_number for i in range(len(store))}
+    assert line_nums == {2, 3, 4}

@@ -104,12 +104,8 @@ class RecordStore:
             else:
                 dt = None
             if dt is None:
-                return (1, 0, idx)
-            # Separate aware and naive to avoid TypeError on comparison.
-            # Aware (UTC) records sort before naive records.
-            if dt.tzinfo is not None:
-                return (0, 0, dt)
-            return (0, 1, dt)
+                return (1, idx)
+            return (0, dt)
 
         indexed = list(enumerate(self._source))
         indexed.sort(key=sort_key)

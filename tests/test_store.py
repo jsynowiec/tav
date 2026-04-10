@@ -200,30 +200,21 @@ def test_reset_sort_restores_file_order():
     assert store[2].line_number == 3
 
 
-def _mixed_tz_parser(value):
-    """Returns an aware datetime for 'aware', a naive datetime for 'naive', else None."""
-    if value == "aware":
-        return datetime(2024, 1, 1, tzinfo=timezone.utc)
-    if value == "naive":
-        return datetime(2024, 1, 2)
-    return None
+def test_sort_by_time_chronological_order():
+    """Sorting records produces true chronological order regardless of input format."""
+    def parser(value):
+        from tav.time_parse import parse_timestamp
+        return parse_timestamp(value)
 
-
-def test_sort_mixed_aware_naive_does_not_raise():
-    """Sorting records with mixed aware/naive datetimes must not raise TypeError."""
     lines = [
-        make_object(1, {"ts": "naive"}),
-        make_object(2, {"ts": "aware"}),
-        make_object(3, {"ts": "naive"}),
-        make_object(4, {"ts": "aware"}),
+        make_object(1, {"ts": "2024-01-03T00:00:00"}),      # naive ISO
+        make_object(2, {"ts": "2024-01-01T00:00:00Z"}),      # aware ISO
+        make_object(3, {"ts": 1704153600}),                   # epoch (2024-01-02)
+        make_object(4, {"ts": "2024-01-04 00:00:00"}),        # strptime
     ]
     store = RecordStore(lines)
-    store.sort_by_time("ts", _mixed_tz_parser)
-    # Aware records sort first; no TypeError raised
-    assert store[0].line_number in (2, 4)
-    assert store[1].line_number in (2, 4)
-    assert store[2].line_number in (1, 3)
-    assert store[3].line_number in (1, 3)
+    store.sort_by_time("ts", parser)
+    assert [store[i].line_number for i in range(4)] == [2, 3, 1, 4]
 
 
 # ---------------------------------------------------------------------------

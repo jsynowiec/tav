@@ -247,12 +247,7 @@ class DataViewScreen(Screen):
             rec_dt = parse_timestamp(val)
             if rec_dt is None:
                 return False
-            # Only compare when both are tz-aware or both are naive
-            if rec_dt.tzinfo is not None and dt.tzinfo is not None:
-                return rec_dt > dt if direction == "after" else rec_dt < dt
-            if rec_dt.tzinfo is None and dt.tzinfo is None:
-                return rec_dt > dt if direction == "after" else rec_dt < dt
-            return False  # mixed tz/naive — skip
+            return rec_dt > dt if direction == "after" else rec_dt < dt
 
         store = self.app.store  # type: ignore[attr-defined]
         store.clear_filter()

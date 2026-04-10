@@ -49,7 +49,7 @@ def _parse_string(value: str) -> datetime | None:
     for fmt in _STRPTIME_FORMATS:
         try:
             dt = datetime.strptime(value, fmt)
-            return dt  # naive — no TZ to normalise
+            return _normalise_tz(dt)
         except ValueError:
             continue
 
@@ -57,7 +57,7 @@ def _parse_string(value: str) -> datetime | None:
 
 
 def _normalise_tz(dt: datetime) -> datetime:
-    """Normalize tz-aware datetimes to UTC; leave naive datetimes untouched."""
+    """Normalize any datetime to UTC: convert tz-aware, assume UTC for naive."""
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc)
-    return dt
+    return dt.replace(tzinfo=timezone.utc)

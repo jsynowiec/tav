@@ -77,8 +77,6 @@ def _compute_time_stats(
         raw = rec.value.get(time_field)
         dt = time_parser(raw)
         if dt is not None:
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
             times.append(dt)
 
     if not times:

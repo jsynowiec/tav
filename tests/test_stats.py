@@ -267,24 +267,17 @@ def test_field_value_type_parametrized(val, expected_type):
 # 16. mixed aware/naive datetimes don't crash
 # ---------------------------------------------------------------------------
 
-def test_time_stats_mixed_aware_naive_datetimes_no_error():
-    """compute_stats must not raise TypeError when datetimes mix tz-aware and naive."""
-    def naive_and_aware_parser(value):
-        """Returns aware for Z suffix, naive otherwise — intentionally mixed."""
-        if not isinstance(value, str):
-            return None
-        try:
-            return datetime.fromisoformat(value.replace("Z", "+00:00") if value.endswith("Z") else value)
-        except ValueError:
-            return None
+def test_time_stats_mixed_formats_no_error():
+    """compute_stats works with mixed timestamp formats (all normalized to UTC)."""
+    from tav.time_parse import parse_timestamp
 
     lines = [
-        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),   # aware (UTC)
-        make_object(2, {"ts": "2024-01-02T00:00:00"}),    # naive
-        make_object(3, {"ts": "2024-01-03T00:00:00Z"}),   # aware (UTC)
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),   # ISO with Z
+        make_object(2, {"ts": "2024-01-02T00:00:00"}),    # ISO without TZ
+        make_object(3, {"ts": 1704326400}),                # epoch (2024-01-04)
     ]
     store = RecordStore(lines)
-    result = compute_stats(store, time_field="ts", time_parser=naive_and_aware_parser)
+    result = compute_stats(store, time_field="ts", time_parser=parse_timestamp)
     assert result.time_stats is not None
     assert result.time_stats.record_count == 3
 
