@@ -2,8 +2,8 @@
 # ABOUTME: Supports Unix epoch (seconds/ms), ISO 8601, and common strptime formats.
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime, timezone, tzinfo as TzInfo
+from typing import Any, Callable
 
 _RANGE_MIN = datetime(2000, 1, 1, tzinfo=timezone.utc).timestamp()
 _RANGE_MAX = datetime(2040, 12, 31, 23, 59, 59, tzinfo=timezone.utc).timestamp()
@@ -37,11 +37,11 @@ def _parse_epoch(value: int | float) -> datetime | None:
     return datetime.fromtimestamp(seconds, tz=timezone.utc)
 
 
-def _parse_string(value: str) -> datetime | None:
+def _parse_string(value: str, assume_tz: TzInfo = timezone.utc) -> datetime | None:
     # Try fromisoformat first (handles ISO 8601 with/without TZ, Python 3.11+ handles Z)
     try:
         dt = datetime.fromisoformat(value)
-        return _normalise_tz(dt)
+        return _normalise_tz(dt, assume_tz)
     except ValueError:
         pass
 
@@ -49,15 +49,30 @@ def _parse_string(value: str) -> datetime | None:
     for fmt in _STRPTIME_FORMATS:
         try:
             dt = datetime.strptime(value, fmt)
-            return _normalise_tz(dt)
+            return _normalise_tz(dt, assume_tz)
         except ValueError:
             continue
 
     return None
 
 
-def _normalise_tz(dt: datetime) -> datetime:
-    """Normalize any datetime to UTC: convert tz-aware, assume UTC for naive."""
+def _normalise_tz(dt: datetime, assume_tz: TzInfo = timezone.utc) -> datetime:
+    """Normalize any datetime to UTC: convert tz-aware, stamp naive with assume_tz."""
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc)
-    return dt.replace(tzinfo=timezone.utc)
+    return dt.replace(tzinfo=assume_tz).astimezone(timezone.utc)
+
+
+def create_time_parser(
+    assume_tz: TzInfo = timezone.utc,
+) -> Callable[[Any], datetime | None]:
+    """Return a timestamp parser that interprets naive datetimes in assume_tz."""
+    def _parse(value: Any) -> datetime | None:
+        if isinstance(value, bool):
+            return None
+        if isinstance(value, (int, float)):
+            return _parse_epoch(value)
+        if isinstance(value, str):
+            return _parse_string(value, assume_tz)
+        return None
+    return _parse

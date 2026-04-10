@@ -1,9 +1,13 @@
 # ABOUTME: Textual App subclass for tav — the TUI entry point.
 # ABOUTME: Owns shared state (RecordStore, time_field, source_name) and screen registry.
+from typing import Any, Callable
+
+from datetime import datetime
 from textual.app import App
 
 from tav.store import RecordStore
 from tav.screens.data_view import DataViewScreen
+from tav.time_parse import parse_timestamp
 
 
 class TavApp(App):
@@ -19,6 +23,7 @@ class TavApp(App):
         self,
         store: RecordStore,
         time_field: str | None = None,
+        time_parser: Callable[[Any], datetime | None] = parse_timestamp,
         source_name: str = "<stdin>",
         start_stats: bool = False,
         **kwargs,
@@ -26,6 +31,7 @@ class TavApp(App):
         super().__init__(**kwargs)
         self.store = store
         self.time_field = time_field
+        self.time_parser = time_parser
         self.source_name = source_name
         self.start_stats = start_stats
 

@@ -192,3 +192,37 @@ def test_parse_timestamp_always_returns_utc_aware_or_none(value):
     result = parse_timestamp(value)
     assert result is not None
     assert result.tzinfo == timezone.utc
+
+
+# ---------------------------------------------------------------------------
+# create_time_parser with custom timezone
+# ---------------------------------------------------------------------------
+
+def test_create_time_parser_with_non_utc_timezone():
+    """Naive timestamps interpreted in the given timezone and converted to UTC."""
+    from zoneinfo import ZoneInfo
+    from tav.time_parse import create_time_parser
+
+    parser = create_time_parser(assume_tz=ZoneInfo("Europe/Warsaw"))
+    # 2024-01-15 10:30:00 in Warsaw = 2024-01-15 09:30:00 UTC (CET = UTC+1)
+    result = parser("2024-01-15T10:30:00")
+    assert result == datetime(2024, 1, 15, 9, 30, 0, tzinfo=timezone.utc)
+
+
+def test_create_time_parser_aware_input_ignores_assume_tz():
+    """Tz-aware inputs are converted to UTC regardless of assume_tz."""
+    from zoneinfo import ZoneInfo
+    from tav.time_parse import create_time_parser
+
+    parser = create_time_parser(assume_tz=ZoneInfo("US/Eastern"))
+    result = parser("2024-01-15T10:30:00+05:00")
+    assert result == datetime(2024, 1, 15, 5, 30, 0, tzinfo=timezone.utc)
+
+
+def test_create_time_parser_default_is_utc():
+    """Default factory behaves identically to parse_timestamp."""
+    from tav.time_parse import create_time_parser
+
+    parser = create_time_parser()
+    result = parser("2024-01-15T10:30:00")
+    assert result == parse_timestamp("2024-01-15T10:30:00")

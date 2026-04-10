@@ -16,6 +16,7 @@ from tav.time_detect import detect_time_field
 def _launch_app(
     store: RecordStore,
     time_field: str | None,
+    time_parser,
     source_name: str,
     start_stats: bool,
 ) -> None:
@@ -25,6 +26,7 @@ def _launch_app(
     TavApp(
         store=store,
         time_field=time_field,
+        time_parser=time_parser,
         source_name=source_name,
         start_stats=start_stats,
     ).run()
@@ -47,6 +49,12 @@ def main() -> None:
         "--time-field",
         metavar="JSONPATH",
         help="JSONPath pointing to the timestamp field (e.g. timestamp or $.timestamp)",
+    )
+    parser.add_argument(
+        "--timezone",
+        metavar="TZ",
+        default="UTC",
+        help="Timezone for naive timestamps without TZ info (default: UTC)",
     )
     parser.add_argument(
         "--stats",
@@ -114,11 +122,25 @@ def main() -> None:
         time_field = detect_time_field(objects)
 
     # ------------------------------------------------------------------
+    # Build time parser
+    # ------------------------------------------------------------------
+    from zoneinfo import ZoneInfo
+    from tav.time_parse import create_time_parser
+
+    try:
+        tz = ZoneInfo(args.timezone)
+    except KeyError:
+        print(f"Error: unknown timezone: {args.timezone}", file=sys.stderr)
+        sys.exit(1)
+    time_parser = create_time_parser(assume_tz=tz)
+
+    # ------------------------------------------------------------------
     # Launch TUI
     # ------------------------------------------------------------------
     _launch_app(
         store=store,
         time_field=time_field,
+        time_parser=time_parser,
         source_name=source_name,
         start_stats=args.stats,
     )

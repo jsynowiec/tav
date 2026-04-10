@@ -57,7 +57,6 @@ class StatsViewScreen(Screen):
     def on_mount(self) -> None:
         """Compute stats and populate the view."""
         from tav.stats import compute_stats
-        from tav.time_parse import parse_timestamp
 
         self.app.title = "tav — Stats"  # type: ignore[attr-defined]
         self.app.sub_title = ""  # type: ignore[attr-defined]
@@ -65,7 +64,7 @@ class StatsViewScreen(Screen):
         data_stats = compute_stats(
             self.app.store,  # type: ignore[attr-defined]
             self.app.time_field,  # type: ignore[attr-defined]
-            parse_timestamp,
+            self.app.time_parser,  # type: ignore[attr-defined]
         )
         self._render_stats(data_stats)
 

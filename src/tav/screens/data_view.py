@@ -226,9 +226,9 @@ class DataViewScreen(Screen):
 
     def _apply_time_filter(self, value: str, direction: str) -> None:
         """Filter records to those after/before the given timestamp."""
-        from tav.time_parse import parse_timestamp
+        time_parser = self.app.time_parser  # type: ignore[attr-defined]
 
-        dt = parse_timestamp(value)
+        dt = time_parser(value)
         if dt is None:
             self.app.notify(f"Cannot parse timestamp: {value!r}", severity="error")
             return
@@ -244,7 +244,7 @@ class DataViewScreen(Screen):
             val = record.value.get(time_field)
             if val is None:
                 return False
-            rec_dt = parse_timestamp(val)
+            rec_dt = time_parser(val)
             if rec_dt is None:
                 return False
             return rec_dt > dt if direction == "after" else rec_dt < dt

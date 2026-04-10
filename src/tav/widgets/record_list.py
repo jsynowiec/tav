@@ -284,14 +284,12 @@ class RecordList(ScrollView, can_focus=True):
         self.post_message(RecordList.DisplayChanged())
 
     def action_toggle_sort(self) -> None:
-        from tav.time_parse import parse_timestamp
-
         time_field = self.app.time_field  # type: ignore[attr-defined]
         if time_field is None:
             self.app.notify("No time field detected")
             return
         if not self._sorted:
-            self._store.sort_by_time(time_field, parse_timestamp)
+            self._store.sort_by_time(time_field, self.app.time_parser)  # type: ignore[attr-defined]
         else:
             self._store.reset_sort()
         self._sorted = not self._sorted

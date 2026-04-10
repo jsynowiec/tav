@@ -138,3 +138,21 @@ def test_stats_flag(tmp_path):
     p = make_jsonl(tmp_path, [{"timestamp": "2024-01-01T00:00:00Z", "value": 1}])
     result = run_tav(str(p), "--stats")
     assert result.returncode == 0
+
+
+# ---------------------------------------------------------------------------
+# --timezone flag
+# ---------------------------------------------------------------------------
+
+
+def test_timezone_flag_valid(tmp_path):
+    p = make_jsonl(tmp_path, [{"timestamp": "2024-01-01T00:00:00", "value": 1}])
+    result = run_tav(str(p), "--timezone", "Europe/Warsaw")
+    assert result.returncode == 0
+
+
+def test_timezone_flag_invalid(tmp_path):
+    p = make_jsonl(tmp_path, [{"timestamp": "2024-01-01T00:00:00", "value": 1}])
+    result = run_tav(str(p), "--timezone", "Not/A/Timezone")
+    assert result.returncode == 1
+    assert "unknown timezone" in result.stderr

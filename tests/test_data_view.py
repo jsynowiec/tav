@@ -7,6 +7,7 @@ import pytest
 from tests.conftest import make_object
 from tav.screens.data_view import DataViewScreen
 from tav.store import RecordStore
+from tav.time_parse import parse_timestamp
 
 
 def _make_screen(store):
@@ -23,6 +24,7 @@ def _make_screen(store):
     mock_app = MagicMock()
     mock_app.store = store
     mock_app.source_name = "test.jsonl"
+    mock_app.time_parser = parse_timestamp
     return screen, mock_app
 
 
