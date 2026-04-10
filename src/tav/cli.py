@@ -3,18 +3,22 @@
 import argparse
 import os
 import sys
+from datetime import datetime
 from importlib.metadata import version
 from pathlib import Path
+from typing import Any, Callable
+from zoneinfo import ZoneInfo
 
 from tav.loader import KIND_OBJECT, load_lines
 from tav.store import RecordStore
 from tav.time_detect import detect_time_field
+from tav.time_parse import create_time_parser
 
 
 def _launch_app(
     store: RecordStore,
     time_field: str | None,
-    time_parser,
+    time_parser: Callable[[Any], datetime | None],
     source_name: str,
     start_stats: bool,
 ) -> None:
@@ -122,9 +126,6 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Build time parser
     # ------------------------------------------------------------------
-    from zoneinfo import ZoneInfo
-    from tav.time_parse import create_time_parser
-
     try:
         tz = ZoneInfo(args.timezone)
     except KeyError:

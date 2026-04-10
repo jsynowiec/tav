@@ -202,9 +202,7 @@ def test_reset_sort_restores_file_order():
 
 def test_sort_by_time_chronological_order():
     """Sorting records produces true chronological order regardless of input format."""
-    def parser(value):
-        from tav.time_parse import parse_timestamp
-        return parse_timestamp(value)
+    from tav.time_parse import parse_timestamp
 
     lines = [
         make_object(1, {"ts": "2024-01-03T00:00:00"}),      # naive ISO
@@ -213,7 +211,7 @@ def test_sort_by_time_chronological_order():
         make_object(4, {"ts": "2024-01-04 00:00:00"}),        # strptime
     ]
     store = RecordStore(lines)
-    store.sort_by_time("ts", parser)
+    store.sort_by_time("ts", parse_timestamp)
     assert [store[i].line_number for i in range(4)] == [2, 3, 1, 4]
 
 

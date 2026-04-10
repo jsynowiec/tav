@@ -1,5 +1,5 @@
-# ABOUTME: Test data generators for tav tests
-# ABOUTME: Provides curated sample records for integration tests.
+# ABOUTME: Sample data for tav integration tests.
+# ABOUTME: Provides curated sample records used across test modules.
 import json
 
 

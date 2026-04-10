@@ -1,2 +1,2 @@
 # ABOUTME: Test package for tav.
-# ABOUTME: Makes test helpers in conftest.py importable across test modules.
+# ABOUTME: Marks the tests directory as a Python package for cross-module imports.
