@@ -213,6 +213,30 @@ def test_search_includes_non_object_records():
     assert result == [1]
 
 
+def test_filter_does_not_leak_sentinel_key():
+    """After filtering, no record should contain internal sentinel keys."""
+    store = make_store([
+        {"sensor_id": "sensor_1", "value": 10},
+        {"sensor_id": "sensor_2", "value": 20},
+    ])
+    filter_records(store, "sensor_id == 'sensor_1'")
+    for i in range(len(store)):
+        for key in store[i].value:
+            assert not key.startswith("__tav_"), f"Sentinel key leaked: {key}"
+
+
+def test_filter_distinguishes_duplicate_records():
+    """Records with identical content should be distinguished by position."""
+    store = make_store([
+        {"x": 1},
+        {"x": 1},
+        {"x": 2},
+        {"x": 1},
+    ])
+    result = filter_records(store, "x == `1`")
+    assert result == [0, 1, 3]
+
+
 def test_search_uses_serialized_json():
     store = make_store([
         {"timestamp": "2024-01-01T00:00:00Z", "value": 100},

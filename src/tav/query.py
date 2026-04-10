@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 from tav.loader import KIND_OBJECT
 
 _BARE_LITERAL_NAMES = {"true", "false", "null"}
+_SENTINEL = "__tav_f7a2__"
 
 
 def _walk_comparators(node: dict, found: list[str]) -> None:
@@ -71,14 +72,21 @@ def filter_records(store: "RecordStore", expression: str) -> list[int]:
 
     values = [v for _, v in indexed_values]
 
+    # Tag each dict so we can identify matches by position rather than
+    # object identity. Name is deliberately obscure to avoid collisions
+    # with user data keys.
+    for pos, val in enumerate(values):
+        val[_SENTINEL] = pos
     try:
         matched = compiled.search(values) or []
+        matched_positions = {m[_SENTINEL] for m in matched if _SENTINEL in m}
     except jmespath.exceptions.JMESPathError as e:
         raise ValueError(str(e)) from e
+    finally:
+        for val in values:
+            val.pop(_SENTINEL, None)
 
-    # jmespath returns references to the same dict objects from the input list
-    matched_ids = {id(v) for v in matched}
-    return [idx for idx, val in indexed_values if id(val) in matched_ids]
+    return [idx for pos, (idx, _) in enumerate(indexed_values) if pos in matched_positions]
 
 
 def search_records(store: "RecordStore", pattern: str) -> list[int]:
