@@ -16,6 +16,9 @@ env/
 # uv
 .python-version
 
+# Ruff
+.ruff_cache/
+
 # pytest
 .pytest_cache/
 .coverage
@@ -35,3 +38,9 @@ htmlcov/
 
 # Private journal
 .private-journal/
+
+# Serena
+.serena/
+
+# IDEs
+.vscode/settings.json
