@@ -288,3 +288,15 @@ def test_search_uses_serialized_json():
     # Search for a pattern that only appears in the JSON serialization
     result = search_records(store, "2024-06-15")
     assert result == [1]
+
+
+def test_search_quotes_primitive_strings():
+    """Primitive string records must be JSON-serialized so quotes match object strings."""
+    lines = [
+        ParsedLine(line_number=1, value={"msg": "hello"}, kind=KIND_OBJECT),
+        ParsedLine(line_number=2, value="hello", kind=KIND_PRIMITIVE),
+    ]
+    store = RecordStore(lines)
+    store.toggle_line_mode()
+    result = search_records(store, '"hello"')
+    assert result == [0, 1]

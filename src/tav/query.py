@@ -112,10 +112,7 @@ def search_records(store: "RecordStore", pattern: str) -> list[int]:
     results = []
     for i in range(len(store)):
         record = store[i]
-        if record.kind == KIND_OBJECT:
-            text = json.dumps(record.value)
-        else:
-            text = str(record.value)
+        text = json.dumps(record.value, default=str)
         if compiled.search(text):
             results.append(i)
     return results
