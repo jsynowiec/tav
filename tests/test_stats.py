@@ -307,6 +307,18 @@ def test_field_stats_handles_non_serializable_value():
 # 15. field cardinality medium boundary (10 unique values)
 # ---------------------------------------------------------------------------
 
+
+def test_field_cardinality_medium_at_boundary():
+    # exactly 10 unique values → medium (boundary: <10 is low, <=100 is medium)
+    lines = [make_object(i + 1, {"id": i}) for i in range(10)]
+    store = RecordStore(lines)
+    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
+    fs = result.field_stats[0]
+    assert fs.cardinality == "medium"
+    assert fs.unique_count == 10
+    assert fs.value_counts is not None
+
+
 # ---------------------------------------------------------------------------
 # 16. mixed aware/naive datetimes don't crash
 # ---------------------------------------------------------------------------
@@ -325,14 +337,3 @@ def test_time_stats_mixed_formats_no_error():
     result = compute_stats(store, time_field="ts", time_parser=parse_timestamp)
     assert result.time_stats is not None
     assert result.time_stats.record_count == 3
-
-
-def test_field_cardinality_medium_at_boundary():
-    # exactly 10 unique values → medium (boundary: <10 is low, <=100 is medium)
-    lines = [make_object(i + 1, {"id": i}) for i in range(10)]
-    store = RecordStore(lines)
-    result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
-    fs = result.field_stats[0]
-    assert fs.cardinality == "medium"
-    assert fs.unique_count == 10
-    assert fs.value_counts is not None

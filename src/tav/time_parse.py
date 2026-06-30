@@ -1,7 +1,9 @@
 # ABOUTME: Parses timestamp values from various formats into datetime objects.
 # ABOUTME: Supports Unix epoch (seconds/ms), ISO 8601, and common strptime formats.
 from datetime import datetime, timezone, tzinfo as TzInfo
-from typing import Any, Callable
+from typing import Callable
+
+from tav.types import JsonValue
 
 # Reasonable timestamp window for log data. The lower bound avoids treating
 # small integers (e.g. sensor IDs, counts) as epoch seconds; the upper bound
@@ -20,7 +22,7 @@ _STRPTIME_FORMATS = [
 ]
 
 
-def parse_timestamp(value: Any) -> datetime | None:
+def parse_timestamp(value: JsonValue) -> datetime | None:
     """Parse a value into a datetime, or return None if unrecognised."""
     return create_time_parser()(value)
 
@@ -60,10 +62,10 @@ def _normalise_tz(dt: datetime, assume_tz: TzInfo = timezone.utc) -> datetime:
 
 def create_time_parser(
     assume_tz: TzInfo = timezone.utc,
-) -> Callable[[Any], datetime | None]:
+) -> Callable[[JsonValue], datetime | None]:
     """Return a timestamp parser that interprets naive datetimes in assume_tz."""
 
-    def _parse(value: Any) -> datetime | None:
+    def _parse(value: JsonValue) -> datetime | None:
         if isinstance(value, bool):
             return None
         if isinstance(value, (int, float)):

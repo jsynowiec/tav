@@ -32,12 +32,15 @@ _STYLE_NULL = Style(color="bright_black")
 def _is_field_visible(
     path: tuple[str, ...], visible_fields: set[tuple[str, ...]]
 ) -> bool:
-    """Return True if path is selected or any descendant path is selected."""
+    """Return True if path, an ancestor, or a descendant is selected."""
     if path in visible_fields:
         return True
-    # Check if any selected path starts with this path (descendant)
     prefix_len = len(path)
-    return any(len(f) > prefix_len and f[:prefix_len] == path for f in visible_fields)
+    # Descendant selected?
+    if any(len(f) > prefix_len and f[:prefix_len] == path for f in visible_fields):
+        return True
+    # Ancestor selected?
+    return any(len(f) < prefix_len and path[: len(f)] == f for f in visible_fields)
 
 
 def _colorize_value(

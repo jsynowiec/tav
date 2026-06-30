@@ -3,10 +3,11 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, Any
+from typing import Callable
 
 from tav.loader import KIND_OBJECT
 from tav.store import RecordStore
+from tav.types import JsonValue
 
 
 @dataclass
@@ -24,7 +25,9 @@ class FieldStats:
     present_count: int  # records containing this field
     total_count: int  # total records in input
     completeness: float  # present_count / total_count (0.0 to 1.0)
-    value_type: str  # "numeric", "string", "boolean", "mixed", "null"
+    value_type: (
+        str  # "numeric", "string", "boolean", "mixed", "null", "object", "array"
+    )
     cardinality: str  # "low" (<10), "medium" (10-100), "high" (>100)
     unique_count: int  # count of unique values
     value_counts: (
@@ -45,7 +48,7 @@ class DataStats:
 def compute_stats(
     store: RecordStore,
     time_field: str | None,
-    time_parser: Callable[[Any], datetime | None],
+    time_parser: Callable[[JsonValue], datetime | None],
 ) -> DataStats:
     """Compute statistics over the current visible records in the store."""
     visible = [store[i] for i in range(len(store))]
@@ -67,9 +70,9 @@ def compute_stats(
 
 
 def _compute_time_stats(
-    objects: list[Any],
+    objects: list[JsonValue],
     time_field: str | None,
-    time_parser: Callable[[Any], datetime | None],
+    time_parser: Callable[[JsonValue], datetime | None],
 ) -> TimeStats | None:
     if time_field is None:
         return None
@@ -96,7 +99,7 @@ def _compute_time_stats(
     )
 
 
-def _python_type_to_value_type(value: Any) -> str:
+def _python_type_to_value_type(value: JsonValue) -> str:
     if isinstance(value, bool):
         return "boolean"
     if isinstance(value, (int, float)):
@@ -112,7 +115,7 @@ def _python_type_to_value_type(value: Any) -> str:
     return "mixed"
 
 
-def _compute_field_stats(objects: list[Any]) -> list[FieldStats]:
+def _compute_field_stats(objects: list[JsonValue]) -> list[FieldStats]:
     if not objects:
         return []
 

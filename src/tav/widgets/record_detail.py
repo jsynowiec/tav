@@ -53,8 +53,9 @@ class RecordDetail(ModalScreen):
             text = Text(str(record.value), style="bold red")
             widget = Static(text, markup=False)
         else:  # KIND_PRIMITIVE
-            text = Text(str(record.value))
-            widget = Static(text, markup=False)
+            pretty = json.dumps(record.value, indent=2)
+            content = JSON(pretty)
+            widget = Static(content, markup=False)
 
         yield VerticalScroll(widget)
 

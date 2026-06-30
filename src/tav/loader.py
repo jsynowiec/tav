@@ -2,7 +2,9 @@
 # ABOUTME: Returns a LoadResult with ParsedLine records, preserving 1-based line numbers.
 import json
 from dataclasses import dataclass, field
-from typing import Any, TextIO
+from typing import TextIO
+
+from tav.types import JsonValue
 
 KIND_OBJECT = "object"
 KIND_PRIMITIVE = "primitive"
@@ -13,7 +15,7 @@ KIND_ERROR = "error"
 @dataclass
 class ParsedLine:
     line_number: int
-    value: Any
+    value: JsonValue
     kind: str
     error: str | None = None
 

@@ -1,8 +1,9 @@
 # ABOUTME: In-memory record store for JSONL time-series data with filtering, sorting, and line mode.
 # ABOUTME: Wraps a list of ParsedLine records and exposes a filtered/sorted view.
-from typing import Callable, Any
+from typing import Any, Callable
 
 from tav.loader import ParsedLine, KIND_OBJECT, KIND_ERROR
+from tav.types import JsonValue
 
 # Nested dict representing the union of all field paths across records.
 # Keys are field names; values are subtrees (empty dict for leaf fields).
@@ -99,7 +100,7 @@ class RecordStore:
     # Sorting
     # ------------------------------------------------------------------
 
-    def sort_by_time(self, time_field: str, parser: Callable[[Any], Any]) -> None:
+    def sort_by_time(self, time_field: str, parser: Callable[[JsonValue], Any]) -> None:
         """Sort the base list by parsed timestamp; unparseable records go last."""
 
         def sort_key(item):

@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+from importlib.metadata import version
 from pathlib import Path
 
 
@@ -37,7 +38,7 @@ def make_jsonl(tmp_path, records):
 def test_version_flag():
     result = run_tav("--version")
     assert result.returncode == 0
-    assert "0.1.0" in result.stdout
+    assert version("tav") in result.stdout
 
 
 def test_help_flag():
@@ -79,7 +80,7 @@ def test_empty_file_exits_zero(tmp_path):
     p.write_text("")
     result = run_tav(str(p))
     assert result.returncode == 0
-    assert result.stderr  # some warning printed
+    assert "no records loaded" in result.stderr
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +117,7 @@ def test_time_field_flag_warns_no_match(tmp_path):
     p = make_jsonl(tmp_path, [{"ts": "2024-01-01T00:00:00Z", "v": 1}])
     result = run_tav(str(p), "--time-field", "nonexistent_field")
     assert result.returncode == 0
-    assert result.stderr  # warning printed
+    assert "did not match" in result.stderr
 
 
 def test_time_field_dollar_prefix_normalized(tmp_path):
