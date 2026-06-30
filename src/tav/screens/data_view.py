@@ -1,5 +1,7 @@
 # ABOUTME: Main data view screen — shows JSONL records in a scrollable list.
 # ABOUTME: Composes Header, RecordList, CommandBar, and Footer with keybinding hints.
+from typing import TYPE_CHECKING
+
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.geometry import Size
@@ -8,6 +10,9 @@ from textual.widgets import Footer, Header
 
 from tav.loader import KIND_OBJECT
 from tav.widgets.command_bar import CommandBar
+
+if TYPE_CHECKING:
+    from tav.app import TavApp
 from tav.widgets.field_nav import FieldNav
 from tav.widgets.field_selector import FieldSelector
 from tav.widgets.help_overlay import HelpOverlay
@@ -38,15 +43,19 @@ class DataViewScreen(Screen):
         self._search_active: bool = False
         self._overlay_visible: bool = False
 
+    @property
+    def app(self) -> "TavApp":
+        return super().app  # type: ignore[return-value]
+
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)
-        yield RecordList(self.app.store)  # type: ignore[attr-defined]
+        yield RecordList(self.app.store)
         yield Footer()
         yield CommandBar()
 
     def on_mount(self) -> None:
-        store = self.app.store  # type: ignore[attr-defined]
-        source_name = self.app.source_name  # type: ignore[attr-defined]
+        store = self.app.store
+        source_name = self.app.source_name
         self.app.title = "tav"
         self.app.sub_title = f"{source_name}  {len(store)} records"
 
@@ -84,7 +93,7 @@ class DataViewScreen(Screen):
         self.app.push_screen(HelpOverlay(), callback=self._on_overlay_dismissed)
 
     def action_open_field_nav(self) -> None:
-        fields = sorted(self.app.store.all_fields())  # type: ignore[attr-defined]
+        fields = sorted(self.app.store.all_fields())
         if not fields:
             self.app.notify("No fields detected", severity="warning")
             return
@@ -92,7 +101,7 @@ class DataViewScreen(Screen):
         self.app.push_screen(FieldNav(fields), callback=self._on_field_nav_dismissed)
 
     def action_open_field_selector(self) -> None:
-        store = self.app.store  # type: ignore[attr-defined]
+        store = self.app.store
         tree = store.field_tree()
         if not tree:
             self.app.notify("No fields detected", severity="warning")
@@ -141,11 +150,11 @@ class DataViewScreen(Screen):
             return
 
         if self._active_filter is not None:
-            self.app.store.clear_filter()  # type: ignore[attr-defined]
+            self.app.store.clear_filter()
             self._active_filter = None
             self._refresh_record_list()
-            store = self.app.store  # type: ignore[attr-defined]
-            source_name = self.app.source_name  # type: ignore[attr-defined]
+            store = self.app.store
+            source_name = self.app.source_name
             self.app.sub_title = f"{source_name}  {len(store)} records"
             self._focus_record_list()
 
@@ -165,7 +174,7 @@ class DataViewScreen(Screen):
         self._overlay_visible = False
         if result is None:
             return  # cancelled
-        store = self.app.store  # type: ignore[attr-defined]
+        store = self.app.store
         store.set_visible_fields(result if result else None)
         self._refresh_record_list()
 
@@ -213,7 +222,7 @@ class DataViewScreen(Screen):
             self._apply_time_filter(expression[7:].strip(), "before")
             return
 
-        store = self.app.store  # type: ignore[attr-defined]
+        store = self.app.store
         old_predicate = store.predicate
         old_active = self._active_filter
         store.clear_filter()
@@ -225,7 +234,7 @@ class DataViewScreen(Screen):
             self._active_filter = old_active
             self.app.notify(f"Invalid filter: {e}", severity="error")
             self._refresh_record_list()
-            source_name = self.app.source_name  # type: ignore[attr-defined]
+            source_name = self.app.source_name
             self.app.sub_title = f"{source_name}  {len(store)} records"
             return
 
@@ -234,24 +243,24 @@ class DataViewScreen(Screen):
         self._active_filter = expression
         self._clear_search()
         self._refresh_record_list()
-        source_name = self.app.source_name  # type: ignore[attr-defined]
+        source_name = self.app.source_name
         self.app.sub_title = (
             f"{source_name}  {len(store)} records — :{self._active_filter}"
         )
 
     def _apply_time_filter(self, value: str, direction: str) -> None:
         """Filter records to those after/before the given timestamp."""
-        time_parser = self.app.time_parser  # type: ignore[attr-defined]
+        time_parser = self.app.time_parser
 
         dt = time_parser(value)
         if dt is None:
             self.app.notify(f"Cannot parse timestamp: {value!r}", severity="error")
             return
-        if self.app.time_field is None:  # type: ignore[attr-defined]
+        if self.app.time_field is None:
             self.app.notify("No time field detected", severity="warning")
             return
 
-        time_field = self.app.time_field  # type: ignore[attr-defined]
+        time_field = self.app.time_field
 
         def predicate(record) -> bool:
             if record.kind != KIND_OBJECT:
@@ -264,13 +273,13 @@ class DataViewScreen(Screen):
                 return False
             return rec_dt > dt if direction == "after" else rec_dt < dt
 
-        store = self.app.store  # type: ignore[attr-defined]
+        store = self.app.store
         store.clear_filter()
         store.apply_filter(predicate)
         self._active_filter = f"{direction}:{value}"
         self._clear_search()
         self._refresh_record_list()
-        source_name = self.app.source_name  # type: ignore[attr-defined]
+        source_name = self.app.source_name
         self.app.sub_title = (
             f"{source_name}  {len(store)} records — :{self._active_filter}"
         )
@@ -280,7 +289,7 @@ class DataViewScreen(Screen):
         from tav.query import search_records
 
         try:
-            indices = search_records(self.app.store, pattern)  # type: ignore[attr-defined]
+            indices = search_records(self.app.store, pattern)
         except ValueError as e:
             self.app.notify(f"Invalid pattern: {e}", severity="error")
             return
@@ -315,7 +324,7 @@ class DataViewScreen(Screen):
     def _refresh_record_list(self) -> None:
         """Update virtual size and refresh the record list after a store change."""
         record_list = self.query_one(RecordList)
-        store = self.app.store  # type: ignore[attr-defined]
+        store = self.app.store
         record_list._cursor = 0
         record_list._max_content_width = record_list._compute_max_content_width()
         record_list.virtual_size = Size(

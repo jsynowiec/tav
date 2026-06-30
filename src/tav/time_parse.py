@@ -3,8 +3,10 @@
 from datetime import datetime, timezone, tzinfo as TzInfo
 from typing import Any, Callable
 
-# Reasonable timestamp window for log data: 1970 through 2100.
-_RANGE_MIN = datetime(1970, 1, 1, tzinfo=timezone.utc).timestamp()
+# Reasonable timestamp window for log data. The lower bound avoids treating
+# small integers (e.g. sensor IDs, counts) as epoch seconds; the upper bound
+# accepts future data through 2100.
+_RANGE_MIN = datetime(2000, 1, 1, tzinfo=timezone.utc).timestamp()
 _RANGE_MAX = datetime(2100, 12, 31, 23, 59, 59, tzinfo=timezone.utc).timestamp()
 
 # Values larger than this are treated as milliseconds rather than seconds.

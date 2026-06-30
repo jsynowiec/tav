@@ -1,6 +1,7 @@
 # ABOUTME: Virtual-scrolling record list widget for tav.
 # ABOUTME: Renders JSONL records line-by-line using ScrollView.render_line for performance.
 import json
+from typing import TYPE_CHECKING
 
 from rich.segment import Segment
 from rich.style import Style
@@ -12,6 +13,9 @@ from textual.strip import Strip
 
 from tav.loader import KIND_ARRAY, KIND_ERROR, KIND_OBJECT, ParsedLine
 from tav.store import RecordStore
+
+if TYPE_CHECKING:
+    from tav.app import TavApp
 
 # Width of the line-number prefix column (digits + separator)
 _LINE_NUM_WIDTH = 5
@@ -155,6 +159,10 @@ class RecordList(ScrollView, can_focus=True):
         self._sorted: bool = False
         self._max_content_width: int = self._compute_max_content_width()
 
+    @property
+    def app(self) -> "TavApp":
+        return super().app  # type: ignore[return-value]
+
     def _compute_max_content_width(self) -> int:
         """Scan store to find the widest record content width."""
         prefix_len = _LINE_NUM_WIDTH + len(_SEPARATOR)
@@ -291,12 +299,12 @@ class RecordList(ScrollView, can_focus=True):
         self.post_message(RecordList.DisplayChanged())
 
     def action_toggle_sort(self) -> None:
-        time_field = self.app.time_field  # type: ignore[attr-defined]
+        time_field = self.app.time_field
         if time_field is None:
             self.app.notify("No time field detected")
             return
         if not self._sorted:
-            self._store.sort_by_time(time_field, self.app.time_parser)  # type: ignore[attr-defined]
+            self._store.sort_by_time(time_field, self.app.time_parser)
         else:
             self._store.reset_sort()
         self._sorted = not self._sorted

@@ -1,5 +1,7 @@
 # ABOUTME: StatsViewScreen — displays computed statistics for the loaded dataset
 # ABOUTME: Shows time range, field completeness table, and value distributions.
+from typing import TYPE_CHECKING
+
 from rich import box
 from rich.table import Table
 from rich.text import Text
@@ -10,6 +12,9 @@ from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
 from tav.stats import DataStats
+
+if TYPE_CHECKING:
+    from tav.app import TavApp
 
 
 def _format_span(seconds: float) -> str:
@@ -45,6 +50,10 @@ def _format_value_counts(value_counts: dict, top_n: int = 5) -> str:
 class StatsViewScreen(Screen):
     """Full-screen stats view showing dataset metrics."""
 
+    @property
+    def app(self) -> "TavApp":
+        return super().app  # type: ignore[return-value]
+
     BINDINGS = [
         Binding("s", "back_to_data", "Data view"),
         Binding("escape", "back_to_data", "Data view"),
@@ -62,13 +71,13 @@ class StatsViewScreen(Screen):
         """Compute stats and populate the view."""
         from tav.stats import compute_stats
 
-        self.app.title = "tav — Stats"  # type: ignore[attr-defined]
-        self.app.sub_title = ""  # type: ignore[attr-defined]
+        self.app.title = "tav — Stats"
+        self.app.sub_title = ""
 
         data_stats = compute_stats(
-            self.app.store,  # type: ignore[attr-defined]
-            self.app.time_field,  # type: ignore[attr-defined]
-            self.app.time_parser,  # type: ignore[attr-defined]
+            self.app.store,
+            self.app.time_field,
+            self.app.time_parser,
         )
         self._render_stats(data_stats)
 
@@ -81,9 +90,9 @@ class StatsViewScreen(Screen):
     def _render_overview(self, data_stats: DataStats) -> None:
         from tav.screens.data_view import DataViewScreen
 
-        source_name = self.app.source_name  # type: ignore[attr-defined]
+        source_name = self.app.source_name
         active_filter: str | None = None
-        for screen in reversed(self.app.screen_stack):  # type: ignore[attr-defined]
+        for screen in reversed(self.app.screen_stack):
             if isinstance(screen, DataViewScreen):
                 active_filter = screen.active_filter
                 break
@@ -119,7 +128,7 @@ class StatsViewScreen(Screen):
         lines.append("\nTime Range\n", style="bold cyan")
         lines.append("──────────\n", style="dim")
         lines.append("Field:      ", style="bold")
-        lines.append(f"{self.app.time_field}\n")  # type: ignore[attr-defined]
+        lines.append(f"{self.app.time_field}\n")
         lines.append("Earliest:   ", style="bold")
         lines.append(f"{ts.min_time}\n")
         lines.append("Latest:     ", style="bold")
