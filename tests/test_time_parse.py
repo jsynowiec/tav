@@ -33,6 +33,10 @@ def test_epoch_seconds_returns_utc_datetime(value, expected):
     [
         (1705314600000, datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)),
         (1577836800000, datetime(2020, 1, 1, 0, 0, 0, tzinfo=timezone.utc)),
+        # Boundary: exactly 1e12 ms must be treated as ms, not seconds.
+        (1_000_000_000_000, datetime(2001, 9, 9, 1, 46, 40, tzinfo=timezone.utc)),
+        # Values between 1e10 and 1e12 are ms (unrealistic as seconds).
+        (10_000_000_000, datetime(1970, 4, 26, 17, 46, 40, tzinfo=timezone.utc)),
     ],
 )
 def test_epoch_milliseconds_divides_by_1000(value, expected):
@@ -64,14 +68,18 @@ def test_epoch_float_works_correctly(value, expected):
 @pytest.mark.parametrize(
     "value",
     [
-        0,  # Unix epoch 1970 — before 2000-01-01
         -1,  # Negative timestamp
-        9999999999999,  # Far future — after 2040-12-31
-        32503680000,  # 3001-01-01 in seconds — after 2040-12-31
+        9999999999999,  # Far future ms — after 2100-12-31
+        5_000_000_000,  # Far future seconds — after 2100-12-31
     ],
 )
 def test_epoch_out_of_range_returns_none(value):
     assert parse_timestamp(value) is None
+
+
+def test_epoch_unix_epoch_is_accepted():
+    """The 1970 lower bound means Unix epoch 0 is now valid."""
+    assert parse_timestamp(0) == datetime(1970, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
 
 
 # ---------------------------------------------------------------------------

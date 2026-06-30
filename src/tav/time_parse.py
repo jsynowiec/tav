@@ -3,8 +3,12 @@
 from datetime import datetime, timezone, tzinfo as TzInfo
 from typing import Any, Callable
 
-_RANGE_MIN = datetime(2000, 1, 1, tzinfo=timezone.utc).timestamp()
-_RANGE_MAX = datetime(2040, 12, 31, 23, 59, 59, tzinfo=timezone.utc).timestamp()
+# Reasonable timestamp window for log data: 1970 through 2100.
+_RANGE_MIN = datetime(1970, 1, 1, tzinfo=timezone.utc).timestamp()
+_RANGE_MAX = datetime(2100, 12, 31, 23, 59, 59, tzinfo=timezone.utc).timestamp()
+
+# Values larger than this are treated as milliseconds rather than seconds.
+_MS_THRESHOLD = 1e10
 
 _STRPTIME_FORMATS = [
     "%Y-%m-%d %H:%M:%S",
@@ -16,20 +20,11 @@ _STRPTIME_FORMATS = [
 
 def parse_timestamp(value: Any) -> datetime | None:
     """Parse a value into a datetime, or return None if unrecognised."""
-    if isinstance(value, bool):
-        return None
-
-    if isinstance(value, (int, float)):
-        return _parse_epoch(value)
-
-    if isinstance(value, str):
-        return _parse_string(value)
-
-    return None
+    return create_time_parser()(value)
 
 
 def _parse_epoch(value: int | float) -> datetime | None:
-    seconds = value / 1000.0 if value > 1e12 else float(value)
+    seconds = value / 1000.0 if value >= _MS_THRESHOLD else float(value)
     if not (_RANGE_MIN <= seconds <= _RANGE_MAX):
         return None
     return datetime.fromtimestamp(seconds, tz=timezone.utc)
