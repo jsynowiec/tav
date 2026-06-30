@@ -1,6 +1,7 @@
 # ABOUTME: Tests for RecordStore — filtering, sorting, line mode, and count properties.
 # ABOUTME: All tests use ParsedLine directly; no file I/O needed.
 from datetime import datetime, timezone
+from typing import cast
 
 import pytest
 
@@ -80,7 +81,7 @@ def test_out_of_bounds_access_raises_index_error():
 
 def test_apply_filter_narrows_visible_records():
     store = RecordStore(_sample_lines())
-    store.apply_filter(lambda rec: rec.value.get("v", 0) > 15)
+    store.apply_filter(lambda rec: cast(dict, rec.value).get("v", 0) > 15)
     assert len(store) == 2
     assert store[0].line_number == 2
     assert store[1].line_number == 5
@@ -88,7 +89,7 @@ def test_apply_filter_narrows_visible_records():
 
 def test_clear_filter_restores_all_visible():
     store = RecordStore(_sample_lines())
-    store.apply_filter(lambda rec: rec.value.get("v", 0) > 15)
+    store.apply_filter(lambda rec: cast(dict, rec.value).get("v", 0) > 15)
     store.clear_filter()
     # Back to default mode (objects only), no filter
     assert len(store) == 3
@@ -307,13 +308,13 @@ def test_visible_fields_default_none():
 
 def test_set_and_get_visible_fields():
     store = RecordStore([make_object(1, {"a": 1, "b": 2})])
-    selection = {("a",), ("b",)}
+    selection: set[tuple[str, ...]] = {("a",), ("b",)}
     store.set_visible_fields(selection)
     assert store.visible_fields == selection
 
 
 def test_set_visible_fields_none_clears():
     store = RecordStore([make_object(1, {"a": 1})])
-    store.set_visible_fields({("a",)})
+    store.set_visible_fields({("a",)})  # type: ignore[arg-type]
     store.set_visible_fields(None)
     assert store.visible_fields is None

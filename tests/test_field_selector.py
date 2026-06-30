@@ -59,7 +59,7 @@ def test_flatten_depth():
 def test_check_state_all_selected():
     tree: FieldTree = {"a": {}, "b": {}}
     items = _flatten(tree)
-    selected = {("a",), ("b",)}
+    selected: set[tuple[str, ...]] = {("a",), ("b",)}
     assert _check_state(("a",), items, selected) == "checked"
     assert _check_state(("b",), items, selected) == "checked"
 
@@ -74,7 +74,7 @@ def test_check_state_none_selected():
 def test_check_state_parent_all_children_selected():
     tree: FieldTree = {"user": {"name": {}, "age": {}}}
     items = _flatten(tree)
-    selected = {("user",), ("user", "name"), ("user", "age")}
+    selected: set[tuple[str, ...]] = {("user",), ("user", "name"), ("user", "age")}
     assert _check_state(("user",), items, selected) == "checked"
 
 
@@ -88,7 +88,7 @@ def test_check_state_parent_no_children_selected():
 def test_check_state_parent_partial():
     tree: FieldTree = {"user": {"name": {}, "age": {}}}
     items = _flatten(tree)
-    selected = {("user", "name")}
+    selected: set[tuple[str, ...]] = {("user", "name")}
     assert _check_state(("user",), items, selected) == "partial"
 
 
@@ -110,7 +110,7 @@ def test_toggle_on_adds_path_and_descendants():
 def test_toggle_off_removes_path_and_descendants():
     tree: FieldTree = {"user": {"name": {}, "age": {}}}
     items = _flatten(tree)
-    selected = {("user",), ("user", "name"), ("user", "age")}
+    selected: set[tuple[str, ...]] = {("user",), ("user", "name"), ("user", "age")}
     result = _toggle(("user",), items, selected)
     assert ("user",) not in result
     assert ("user", "name") not in result
@@ -129,7 +129,7 @@ def test_toggle_leaf_on():
 def test_toggle_leaf_off():
     tree: FieldTree = {"a": {}, "b": {}}
     items = _flatten(tree)
-    selected = {("a",), ("b",)}
+    selected: set[tuple[str, ...]] = {("a",), ("b",)}
     result = _toggle(("a",), items, selected)
     assert ("a",) not in result
     assert ("b",) in result

@@ -3,9 +3,9 @@
 import json
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable
+from typing import Callable, cast
 
-from tav.loader import KIND_OBJECT
+from tav.loader import KIND_OBJECT, ParsedLine
 from tav.store import RecordStore
 from tav.types import JsonValue
 
@@ -70,7 +70,7 @@ def compute_stats(
 
 
 def _compute_time_stats(
-    objects: list[JsonValue],
+    objects: list[ParsedLine],
     time_field: str | None,
     time_parser: Callable[[JsonValue], datetime | None],
 ) -> TimeStats | None:
@@ -79,7 +79,8 @@ def _compute_time_stats(
 
     times: list[datetime] = []
     for rec in objects:
-        raw = rec.value.get(time_field)
+        rec_value = cast(dict, rec.value)
+        raw = rec_value.get(time_field)
         dt = time_parser(raw)
         if dt is not None:
             times.append(dt)
@@ -115,7 +116,7 @@ def _python_type_to_value_type(value: JsonValue) -> str:
     return "mixed"
 
 
-def _compute_field_stats(objects: list[JsonValue]) -> list[FieldStats]:
+def _compute_field_stats(objects: list[ParsedLine]) -> list[FieldStats]:
     if not objects:
         return []
 
@@ -124,7 +125,8 @@ def _compute_field_stats(objects: list[JsonValue]) -> list[FieldStats]:
     # Collect all field names across all visible objects
     all_fields: set[str] = set()
     for rec in objects:
-        all_fields.update(rec.value.keys())
+        rec_value = cast(dict, rec.value)
+        all_fields.update(rec_value.keys())
 
     result: list[FieldStats] = []
     for field_name in sorted(all_fields):
@@ -133,10 +135,11 @@ def _compute_field_stats(objects: list[JsonValue]) -> list[FieldStats]:
         type_set: set[str] = set()
 
         for rec in objects:
-            if field_name not in rec.value:
+            rec_value = cast(dict, rec.value)
+            if field_name not in rec_value:
                 continue
             present_count += 1
-            val = rec.value[field_name]
+            val = rec_value[field_name]
             type_set.add(_python_type_to_value_type(val))
             key = json.dumps(val, ensure_ascii=False, default=str)
             value_counts[key] = value_counts.get(key, 0) + 1

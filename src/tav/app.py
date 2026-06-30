@@ -43,5 +43,5 @@ class TavApp(App):
 
             self.push_screen(StatsViewScreen())
 
-    def action_quit(self) -> None:
+    async def action_quit(self) -> None:
         self.exit()

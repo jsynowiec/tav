@@ -156,7 +156,8 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
         list_view.clear()
         for item in self._build_list_items():
             list_view.append(item)
-        list_view.index = min(saved_index, len(self._items) - 1)
+        if saved_index is not None:
+            list_view.index = min(saved_index, len(self._items) - 1)
 
     def action_toggle_item(self) -> None:
         list_view = self.query_one("#field-list", ListView)

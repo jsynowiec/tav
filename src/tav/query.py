@@ -2,7 +2,7 @@
 # ABOUTME: Uses jmespath for filter expressions; supports quoted string comparisons.
 import json
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import jmespath
 import jmespath.exceptions
@@ -66,8 +66,8 @@ def filter_records(store: "RecordStore", expression: str) -> list[int]:
     indexed_values: list[tuple[int, dict]] = []
     for i in range(len(store)):
         record = store[i]
-        if record.kind == KIND_OBJECT:
-            indexed_values.append((i, record.value))
+        if record.kind == KIND_OBJECT and isinstance(record.value, dict):
+            indexed_values.append((i, cast(dict, record.value)))
 
     if not indexed_values:
         return []

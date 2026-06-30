@@ -168,23 +168,23 @@ def test_scroll_to_field_empty_store_does_not_scroll():
 
 
 def test_is_field_visible_exact_match():
-    visible = {("a",), ("b",)}
+    visible: set[tuple[str, ...]] = {("a",), ("b",)}
     assert _is_field_visible(("a",), visible) is True
 
 
 def test_is_field_visible_not_in_set():
-    visible = {("a",)}
+    visible: set[tuple[str, ...]] = {("a",)}
     assert _is_field_visible(("b",), visible) is False
 
 
 def test_is_field_visible_descendant_match():
     """Parent path is visible when a descendant is selected."""
-    visible = {("user", "name")}
+    visible: set[tuple[str, ...]] = {("user", "name")}
     assert _is_field_visible(("user",), visible) is True
 
 
 def test_is_field_visible_no_descendant():
-    visible = {("user", "name")}
+    visible: set[tuple[str, ...]] = {("user", "name")}
     assert _is_field_visible(("other",), visible) is False
 
 

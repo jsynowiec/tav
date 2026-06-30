@@ -120,6 +120,7 @@ def test_iso8601_with_timezone_returns_utc_datetime(value, expected):
 def test_iso8601_without_timezone_returns_utc_datetime(value, expected):
     result = parse_timestamp(value)
     assert result == expected
+    assert result is not None
     assert result.tzinfo == timezone.utc
 
 
@@ -148,6 +149,7 @@ def test_iso8601_without_timezone_returns_utc_datetime(value, expected):
 def test_strptime_fallback_formats_parsed_correctly(value, expected):
     result = parse_timestamp(value)
     assert result == expected
+    assert result is not None
     assert result.tzinfo == timezone.utc
 
 

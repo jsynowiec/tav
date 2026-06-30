@@ -1,7 +1,7 @@
 # ABOUTME: Virtual-scrolling record list widget for tav.
 # ABOUTME: Renders JSONL records line-by-line using ScrollView.render_line for performance.
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from rich.segment import Segment
 from rich.style import Style
@@ -13,6 +13,7 @@ from textual.strip import Strip
 
 from tav.loader import KIND_ARRAY, KIND_ERROR, KIND_OBJECT, ParsedLine
 from tav.store import RecordStore
+from tav.types import JsonValue
 
 if TYPE_CHECKING:
     from tav.app import TavApp
@@ -74,7 +75,7 @@ def _colorize_value(
         if isinstance(val, dict):
             if not _append("{", Style()):
                 return False
-            items = list(val.items())
+            items = cast(list[tuple[str, JsonValue]], list(val.items()))
             if visible_fields is not None:
                 items = [
                     (k, v)
@@ -164,7 +165,7 @@ class RecordList(ScrollView, can_focus=True):
 
     @property
     def app(self) -> "TavApp":
-        return super().app  # type: ignore[return-value]
+        return cast("TavApp", super().app)
 
     def _compute_max_content_width(self) -> int:
         """Scan store to find the widest record content width."""
@@ -235,7 +236,9 @@ class RecordList(ScrollView, can_focus=True):
 
         if is_cursor:
             cursor_style = Style(reverse=True)
-            segments = [Segment(s.text, s.style + cursor_style) for s in segments]
+            segments = [
+                Segment(s.text, (s.style or Style()) + cursor_style) for s in segments
+            ]
 
         strip = Strip(segments, virtual_width)
         # Crop to account for horizontal scroll

@@ -1,6 +1,6 @@
 # ABOUTME: Main data view screen — shows JSONL records in a scrollable list.
 # ABOUTME: Composes Header, RecordList, CommandBar, and Footer with keybinding hints.
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -45,7 +45,7 @@ class DataViewScreen(Screen):
 
     @property
     def app(self) -> "TavApp":
-        return super().app  # type: ignore[return-value]
+        return cast("TavApp", super().app)
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=False)

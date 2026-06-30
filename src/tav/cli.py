@@ -114,8 +114,12 @@ def main() -> None:
 
     if time_field is not None:
         # Validate: check if the path resolves on at least one loaded object record.
-        objects = [r.value for r in result.records if r.kind == KIND_OBJECT]
-        # Strip leading "$." for plain-field lookup so both "ts" and "$.ts" work.
+        objects = [
+            r.value
+            for r in result.records
+            if r.kind == KIND_OBJECT and isinstance(r.value, dict)
+        ]
+        # Strip leading "$.' for plain-field lookup so both "ts" and "$.ts" work.
         plain = time_field.removeprefix("$.")
         found = any(plain in rec for rec in objects)
         if not found:
@@ -125,7 +129,11 @@ def main() -> None:
             )
         time_field = plain
     else:
-        objects = [r.value for r in result.records if r.kind == KIND_OBJECT]
+        objects = [
+            r.value
+            for r in result.records
+            if r.kind == KIND_OBJECT and isinstance(r.value, dict)
+        ]
         time_field = detect_time_field(objects)
 
     # ------------------------------------------------------------------

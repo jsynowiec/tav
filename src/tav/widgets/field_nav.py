@@ -64,7 +64,7 @@ class FieldNav(ModalScreen[str | None]):
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         label = event.item.query_one(Label)
-        self.dismiss(str(label.renderable))
+        self.dismiss(str(getattr(label, "renderable", "")))
 
     def action_dismiss_none(self) -> None:
         self.dismiss(None)

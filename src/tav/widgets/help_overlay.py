@@ -67,5 +67,5 @@ class HelpOverlay(ModalScreen):
     def compose(self) -> ComposeResult:
         yield Static(HELP_TEXT)
 
-    def action_dismiss(self) -> None:
+    async def action_dismiss(self, result=None) -> None:
         self.dismiss()

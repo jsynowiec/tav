@@ -1,6 +1,6 @@
 # ABOUTME: StatsViewScreen — displays computed statistics for the loaded dataset
 # ABOUTME: Shows time range, field completeness table, and value distributions.
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from rich import box
 from rich.table import Table
@@ -52,7 +52,7 @@ class StatsViewScreen(Screen):
 
     @property
     def app(self) -> "TavApp":
-        return super().app  # type: ignore[return-value]
+        return cast("TavApp", super().app)
 
     BINDINGS = [
         Binding("s", "back_to_data", "Data view"),

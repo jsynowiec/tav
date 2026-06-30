@@ -1,6 +1,7 @@
 # ABOUTME: Tests for pure stats computation functions in stats.py.
 # ABOUTME: Covers TimeStats, FieldStats, and DataStats derived from RecordStore.
 from datetime import datetime, timezone
+from typing import cast
 
 import pytest
 
@@ -57,7 +58,7 @@ def test_total_vs_filtered_count():
         make_primitive(5, 99),
     ]
     store = RecordStore(lines)
-    store.apply_filter(lambda rec: rec.value.get("v", 0) > 1)
+    store.apply_filter(lambda rec: cast(dict, rec.value).get("v", 0) > 1)
     result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
     assert result.total_count == 5
     assert result.filtered_count == 2
