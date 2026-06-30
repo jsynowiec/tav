@@ -311,10 +311,7 @@ class DataViewScreen(Screen):
         if self._match_cursor < 0 or not self._match_indices:
             return
         idx = self._match_indices[self._match_cursor]
-        record_list = self.query_one(RecordList)
-        record_list._cursor = idx
-        record_list.scroll_to(y=idx, animate=False)
-        record_list.refresh()
+        self.query_one(RecordList).jump_to_index(idx)
 
     def _clear_search(self) -> None:
         self._match_indices = []
@@ -325,8 +322,8 @@ class DataViewScreen(Screen):
         """Update virtual size and refresh the record list after a store change."""
         record_list = self.query_one(RecordList)
         store = self.app.store
-        record_list._cursor = 0
-        record_list._max_content_width = record_list._compute_max_content_width()
+        record_list.reset_cursor()
+        record_list.recompute_content_width()
         record_list.virtual_size = Size(
             max(record_list._max_content_width, record_list.size.width or 80),
             max(len(store), 1),

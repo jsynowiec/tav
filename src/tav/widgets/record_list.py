@@ -342,6 +342,20 @@ class RecordList(ScrollView, can_focus=True):
         self.scroll_to(x=offset, animate=False)
         self.refresh()
 
+    def reset_cursor(self) -> None:
+        """Move the cursor to the top of the list."""
+        self._cursor = 0
+
+    def recompute_content_width(self) -> None:
+        """Rescan the store and update the maximum content width."""
+        self._max_content_width = self._compute_max_content_width()
+
+    def jump_to_index(self, index: int) -> None:
+        """Move cursor and scroll to the given store index."""
+        self._cursor = index
+        self.scroll_to(y=index, animate=False)
+        self.refresh()
+
     def action_show_detail(self) -> None:
         if len(self._store) == 0:
             return
