@@ -2,10 +2,23 @@
 name = "tav"
 version = "0.1.0"
 description = "Terminal viewer for JSONL time-series data"
-requires-python = ">=3.12"
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [
+    { name = "Jakub Synowiec" },
+]
+
+requires-python = ">=3.14"
+
 dependencies = [
     "textual>=2.0.0",
     "jmespath>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15",
+    "ty>=0.0.40",
+    "pytest>=9.0.0",
 ]
 
 [project.scripts]
@@ -21,7 +34,13 @@ packages = ["src/tav"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
-[dependency-groups]
-dev = [
-    "pytest>=8.0",
-]
+[tool.ruff]
+line-length = 160
+select = ["E", "F", "W"]
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.uv]
+package = true
+exclude-newer = "7 days"
