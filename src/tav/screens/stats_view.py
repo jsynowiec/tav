@@ -29,12 +29,16 @@ def _format_span(seconds: float) -> str:
     hours = int((seconds % 86400) // 3600)
     if hours == 0:
         return f"{days} day{'s' if days != 1 else ''}"
-    return f"{days} day{'s' if days != 1 else ''} {hours} hour{'s' if hours != 1 else ''}"
+    return (
+        f"{days} day{'s' if days != 1 else ''} {hours} hour{'s' if hours != 1 else ''}"
+    )
 
 
 def _format_value_counts(value_counts: dict, top_n: int = 5) -> str:
     """Format top-N value counts as a compact inline string."""
-    sorted_items = sorted(value_counts.items(), key=lambda x: x[1], reverse=True)[:top_n]
+    sorted_items = sorted(value_counts.items(), key=lambda x: x[1], reverse=True)[
+        :top_n
+    ]
     return "  ".join(f"{k}: {v}" for k, v in sorted_items)
 
 
@@ -136,7 +140,9 @@ class StatsViewScreen(Screen):
         header.append("\nField Statistics\n", style="bold cyan")
         header.append("────────────────\n", style="dim")
 
-        table = Table(box=box.SIMPLE, show_header=True, header_style="bold cyan", padding=(0, 1))
+        table = Table(
+            box=box.SIMPLE, show_header=True, header_style="bold cyan", padding=(0, 1)
+        )
         table.add_column("Field", style="bold")
         table.add_column("Type", style="dim")
         table.add_column("Present", justify="right")
@@ -170,6 +176,7 @@ class StatsViewScreen(Screen):
                 )
 
         from rich.console import Group
+
         renderable = Group(header, table)
         self.query_one("#fields-section", Static).update(renderable)
 

@@ -31,11 +31,16 @@ def test_input_submitted_with_no_matches_dismisses_none():
     nav.dismiss.assert_called_once_with(None)
 
 
-@pytest.mark.parametrize("fields, filtered, expected", [
-    (["x", "y", "z"], ["x", "y", "z"], "x"),
-    (["z", "a", "m"], ["a"], "a"),
-])
-def test_input_submitted_always_returns_first_in_filtered_list(fields, filtered, expected):
+@pytest.mark.parametrize(
+    "fields, filtered, expected",
+    [
+        (["x", "y", "z"], ["x", "y", "z"], "x"),
+        (["z", "a", "m"], ["a"], "a"),
+    ],
+)
+def test_input_submitted_always_returns_first_in_filtered_list(
+    fields, filtered, expected
+):
     """dismiss receives the first element of _filtered regardless of original order."""
     nav = _make_field_nav(fields)
     nav._filtered = filtered

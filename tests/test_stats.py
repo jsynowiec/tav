@@ -30,6 +30,7 @@ def _iso_parser(value):
 # 1. empty store
 # ---------------------------------------------------------------------------
 
+
 def test_compute_stats_empty_store():
     store = RecordStore([])
     result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
@@ -45,6 +46,7 @@ def test_compute_stats_empty_store():
 # ---------------------------------------------------------------------------
 # 2. total vs filtered count
 # ---------------------------------------------------------------------------
+
 
 def test_total_vs_filtered_count():
     lines = [
@@ -65,6 +67,7 @@ def test_total_vs_filtered_count():
 # 3. time_stats None when no time_field
 # ---------------------------------------------------------------------------
 
+
 def test_time_stats_none_when_no_time_field():
     lines = [
         make_object(1, {"ts": "2024-01-01T00:00:00Z", "v": 1}),
@@ -78,6 +81,7 @@ def test_time_stats_none_when_no_time_field():
 # ---------------------------------------------------------------------------
 # 4. time_stats with valid timestamps
 # ---------------------------------------------------------------------------
+
 
 def test_time_stats_with_valid_timestamps():
     lines = [
@@ -99,6 +103,7 @@ def test_time_stats_with_valid_timestamps():
 # 5. span_seconds None with only one parseable record
 # ---------------------------------------------------------------------------
 
+
 def test_time_stats_span_none_with_one_record():
     lines = [
         make_object(1, {"ts": "2024-01-01T00:00:00+00:00", "v": 1}),
@@ -113,6 +118,7 @@ def test_time_stats_span_none_with_one_record():
 # ---------------------------------------------------------------------------
 # 6. time_stats skips unparseable values
 # ---------------------------------------------------------------------------
+
 
 def test_time_stats_skips_unparseable():
     lines = [
@@ -132,6 +138,7 @@ def test_time_stats_skips_unparseable():
 # ---------------------------------------------------------------------------
 # 7. field completeness
 # ---------------------------------------------------------------------------
+
 
 def test_field_completeness():
     lines = [
@@ -154,8 +161,12 @@ def test_field_completeness():
 # 8. field cardinality low
 # ---------------------------------------------------------------------------
 
+
 def test_field_cardinality_low():
-    lines = [make_object(i + 1, {"color": c}) for i, c in enumerate(["red", "green", "blue", "red", "green"])]
+    lines = [
+        make_object(i + 1, {"color": c})
+        for i, c in enumerate(["red", "green", "blue", "red", "green"])
+    ]
     store = RecordStore(lines)
     result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
     fs = result.field_stats[0]
@@ -171,6 +182,7 @@ def test_field_cardinality_low():
 # 9. field cardinality high
 # ---------------------------------------------------------------------------
 
+
 def test_field_cardinality_high():
     lines = [make_object(i + 1, {"id": i}) for i in range(150)]
     store = RecordStore(lines)
@@ -185,6 +197,7 @@ def test_field_cardinality_high():
 # 10. field value_type numeric
 # ---------------------------------------------------------------------------
 
+
 def test_field_value_type_numeric():
     lines = [make_object(i + 1, {"val": float(i)}) for i in range(5)]
     store = RecordStore(lines)
@@ -196,6 +209,7 @@ def test_field_value_type_numeric():
 # ---------------------------------------------------------------------------
 # 11. field value_type mixed
 # ---------------------------------------------------------------------------
+
 
 def test_field_value_type_mixed():
     lines = [
@@ -213,6 +227,7 @@ def test_field_value_type_mixed():
 # 12. all fields included
 # ---------------------------------------------------------------------------
 
+
 def test_all_fields_included():
     lines = [
         make_object(1, {"a": 1, "b": 2}),
@@ -228,6 +243,7 @@ def test_all_fields_included():
 # ---------------------------------------------------------------------------
 # 13. error count in DataStats
 # ---------------------------------------------------------------------------
+
 
 def test_error_count_in_data_stats():
     lines = [
@@ -246,12 +262,16 @@ def test_error_count_in_data_stats():
 # 14. field value_type string, boolean, null (parametrized)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("val,expected_type", [
-    ("hello", "string"),
-    (True, "boolean"),
-    (False, "boolean"),
-    (None, "null"),
-])
+
+@pytest.mark.parametrize(
+    "val,expected_type",
+    [
+        ("hello", "string"),
+        (True, "boolean"),
+        (False, "boolean"),
+        (None, "null"),
+    ],
+)
 def test_field_value_type_parametrized(val, expected_type):
     lines = [make_object(i + 1, {"x": val}) for i in range(3)]
     store = RecordStore(lines)
@@ -276,6 +296,7 @@ def test_field_value_type_array():
 def test_field_stats_handles_non_serializable_value():
     """Fields with non-JSON-serializable values should not crash stats computation."""
     from datetime import datetime as dt
+
     lines = [make_object(1, {"x": dt(2024, 1, 1)})]
     store = RecordStore(lines)
     result = compute_stats(store, time_field=None, time_parser=_no_op_parser)
@@ -290,14 +311,15 @@ def test_field_stats_handles_non_serializable_value():
 # 16. mixed aware/naive datetimes don't crash
 # ---------------------------------------------------------------------------
 
+
 def test_time_stats_mixed_formats_no_error():
     """compute_stats works with mixed timestamp formats (all normalized to UTC)."""
     from tav.time_parse import parse_timestamp
 
     lines = [
-        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),   # ISO with Z
-        make_object(2, {"ts": "2024-01-02T00:00:00"}),    # ISO without TZ
-        make_object(3, {"ts": 1704326400}),                # epoch (2024-01-04)
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),  # ISO with Z
+        make_object(2, {"ts": "2024-01-02T00:00:00"}),  # ISO without TZ
+        make_object(3, {"ts": 1704326400}),  # epoch (2024-01-04)
     ]
     store = RecordStore(lines)
     result = compute_stats(store, time_field="ts", time_parser=parse_timestamp)

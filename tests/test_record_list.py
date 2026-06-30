@@ -8,7 +8,14 @@ from rich.segment import Segment
 
 from tests.conftest import make_object
 from tav.store import RecordStore
-from tav.widgets.record_list import _colorize_value, _is_field_visible, _LINE_NUM_WIDTH, _SEPARATOR, _STYLE_KEY, RecordList
+from tav.widgets.record_list import (
+    _colorize_value,
+    _is_field_visible,
+    _LINE_NUM_WIDTH,
+    _SEPARATOR,
+    _STYLE_KEY,
+    RecordList,
+)
 
 
 def _text(segments: list[Segment]) -> str:
@@ -32,13 +39,16 @@ def test_colorize_single_string_value():
     assert len(text) == 40
 
 
-@pytest.mark.parametrize("value, expected_fragment", [
-    (True,  "true"),
-    (False, "false"),
-    (None,  "null"),
-    (42,    "42"),
-    (3.14,  "3.14"),
-])
+@pytest.mark.parametrize(
+    "value, expected_fragment",
+    [
+        (True, "true"),
+        (False, "false"),
+        (None, "null"),
+        (42, "42"),
+        (3.14, "3.14"),
+    ],
+)
 def test_colorize_value_types(value, expected_fragment):
     result = _colorize_value({"x": value}, max_width=40)
     text = _text(result)
@@ -106,6 +116,7 @@ def test_colorize_primitive_number():
 # scroll_to_field
 # ------------------------------------------------------------------
 
+
 def _make_record_list(records):
     """Return a RecordList stub with mocked scroll_to and refresh."""
     rl = object.__new__(RecordList)
@@ -155,6 +166,7 @@ def test_scroll_to_field_empty_store_does_not_scroll():
 # _is_field_visible
 # ------------------------------------------------------------------
 
+
 def test_is_field_visible_exact_match():
     visible = {("a",), ("b",)}
     assert _is_field_visible(("a",), visible) is True
@@ -180,6 +192,7 @@ def test_is_field_visible_no_descendant():
 # _colorize_value with visible_fields filtering
 # ------------------------------------------------------------------
 
+
 def test_colorize_visible_fields_none_shows_all():
     """visible_fields=None renders everything."""
     result = _colorize_value({"a": 1, "b": 2}, max_width=80, visible_fields=None)
@@ -190,7 +203,9 @@ def test_colorize_visible_fields_none_shows_all():
 
 def test_colorize_visible_fields_hides_unselected():
     """Only selected top-level fields appear in output."""
-    result = _colorize_value({"a": 1, "b": 2, "c": 3}, max_width=80, visible_fields={("a",)})
+    result = _colorize_value(
+        {"a": 1, "b": 2, "c": 3}, max_width=80, visible_fields={("a",)}
+    )
     text = _text(result)
     assert '"a":' in text
     assert '"b":' not in text

@@ -8,6 +8,7 @@ from tav.widgets.field_selector import _flatten, _check_state, _toggle
 # _flatten
 # ---------------------------------------------------------------------------
 
+
 def test_flatten_single_level():
     tree: FieldTree = {"a": {}, "b": {}, "c": {}}
     items = _flatten(tree)
@@ -54,6 +55,7 @@ def test_flatten_depth():
 # _check_state
 # ---------------------------------------------------------------------------
 
+
 def test_check_state_all_selected():
     tree: FieldTree = {"a": {}, "b": {}}
     items = _flatten(tree)
@@ -93,6 +95,7 @@ def test_check_state_parent_partial():
 # ---------------------------------------------------------------------------
 # _toggle
 # ---------------------------------------------------------------------------
+
 
 def test_toggle_on_adds_path_and_descendants():
     tree: FieldTree = {"user": {"name": {}, "age": {}}}
@@ -135,6 +138,7 @@ def test_toggle_leaf_off():
 # ---------------------------------------------------------------------------
 # Initial selection from None (all selected)
 # ---------------------------------------------------------------------------
+
 
 def test_all_paths_from_none():
     """When current_selection is None, all paths should be pre-selected."""

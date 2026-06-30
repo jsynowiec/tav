@@ -54,14 +54,18 @@ class DataViewScreen(Screen):
     # Record selection
     # ------------------------------------------------------------------
 
-    def on_record_list_record_selected(self, message: RecordList.RecordSelected) -> None:
+    def on_record_list_record_selected(
+        self, message: RecordList.RecordSelected
+    ) -> None:
         self.app.push_screen(RecordDetail(message.record))
 
     # ------------------------------------------------------------------
     # Display change (line mode / sort toggle)
     # ------------------------------------------------------------------
 
-    def on_record_list_display_changed(self, message: RecordList.DisplayChanged) -> None:
+    def on_record_list_display_changed(
+        self, message: RecordList.DisplayChanged
+    ) -> None:
         self._clear_search()
         self._refresh_record_list()
 
@@ -101,6 +105,7 @@ class DataViewScreen(Screen):
 
     def action_toggle_stats(self) -> None:
         from tav.screens.stats_view import StatsViewScreen
+
         self.app.push_screen(StatsViewScreen())
 
     def action_next_match(self) -> None:
@@ -168,12 +173,16 @@ class DataViewScreen(Screen):
     # CommandBar message handlers
     # ------------------------------------------------------------------
 
-    def on_command_bar_command_submitted(self, message: CommandBar.CommandSubmitted) -> None:
+    def on_command_bar_command_submitted(
+        self, message: CommandBar.CommandSubmitted
+    ) -> None:
         """Apply JMESPath filter or time range command."""
         self._apply_command(message.expression)
         self._focus_record_list()
 
-    def on_command_bar_search_submitted(self, message: CommandBar.SearchSubmitted) -> None:
+    def on_command_bar_search_submitted(
+        self, message: CommandBar.SearchSubmitted
+    ) -> None:
         """Apply text/regex search and highlight matches."""
         self._apply_search(message.pattern)
         self._focus_record_list()
@@ -226,7 +235,9 @@ class DataViewScreen(Screen):
         self._clear_search()
         self._refresh_record_list()
         source_name = self.app.source_name  # type: ignore[attr-defined]
-        self.app.sub_title = f"{source_name}  {len(store)} records — :{self._active_filter}"
+        self.app.sub_title = (
+            f"{source_name}  {len(store)} records — :{self._active_filter}"
+        )
 
     def _apply_time_filter(self, value: str, direction: str) -> None:
         """Filter records to those after/before the given timestamp."""
@@ -260,7 +271,9 @@ class DataViewScreen(Screen):
         self._clear_search()
         self._refresh_record_list()
         source_name = self.app.source_name  # type: ignore[attr-defined]
-        self.app.sub_title = f"{source_name}  {len(store)} records — :{self._active_filter}"
+        self.app.sub_title = (
+            f"{source_name}  {len(store)} records — :{self._active_filter}"
+        )
 
     def _apply_search(self, pattern: str) -> None:
         """Apply text/regex search and store match indices."""

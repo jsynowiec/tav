@@ -13,6 +13,7 @@ from tav.store import FieldTree
 # Pure helpers (tested independently)
 # ---------------------------------------------------------------------------
 
+
 def _flatten(tree: FieldTree) -> list[tuple[tuple[str, ...], int]]:
     """Return a pre-order DFS list of (path_tuple, depth) pairs, sorted by key at each level."""
     result: list[tuple[tuple[str, ...], int]] = []
@@ -35,7 +36,11 @@ def _check_state(
 ) -> str:
     """Return 'checked', 'unchecked', or 'partial' for path based on selected set."""
     # Collect path itself and all descendant paths
-    family = [p for p, _ in items if p == path or (len(p) > len(path) and p[: len(path)] == path)]
+    family = [
+        p
+        for p, _ in items
+        if p == path or (len(p) > len(path) and p[: len(path)] == path)
+    ]
     if not family:
         return "unchecked"
     selected_count = sum(1 for p in family if p in selected)
@@ -52,7 +57,11 @@ def _toggle(
     selected: set[tuple[str, ...]],
 ) -> set[tuple[str, ...]]:
     """Toggle path and all descendants. Returns a new set."""
-    family = [p for p, _ in items if p == path or (len(p) > len(path) and p[: len(path)] == path)]
+    family = [
+        p
+        for p, _ in items
+        if p == path or (len(p) > len(path) and p[: len(path)] == path)
+    ]
     result = set(selected)
     if path in result:
         # Toggle OFF: remove path and all descendants
@@ -122,9 +131,14 @@ class FieldSelector(ModalScreen[set[tuple[str, ...]] | None]):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="container"):
-            yield Static("[cyan]a[/cyan] Select all   [cyan]x[/cyan] Select none", id="hints-top")
+            yield Static(
+                "[cyan]a[/cyan] Select all   [cyan]x[/cyan] Select none", id="hints-top"
+            )
             yield ListView(*self._build_list_items(), id="field-list")
-            yield Static("[cyan]Enter[/cyan]: apply  [cyan]Escape[/cyan]: cancel", id="hints-bottom")
+            yield Static(
+                "[cyan]Enter[/cyan]: apply  [cyan]Escape[/cyan]: cancel",
+                id="hints-bottom",
+            )
 
     def _build_list_items(self) -> list[ListItem]:
         items = []

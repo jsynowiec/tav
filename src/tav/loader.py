@@ -35,12 +35,14 @@ def load_lines(source: TextIO) -> LoadResult:
         try:
             value = json.loads(line)
         except json.JSONDecodeError as exc:
-            records.append(ParsedLine(
-                line_number=line_number,
-                value=line,
-                kind=KIND_ERROR,
-                error=str(exc),
-            ))
+            records.append(
+                ParsedLine(
+                    line_number=line_number,
+                    value=line,
+                    kind=KIND_ERROR,
+                    error=str(exc),
+                )
+            )
             continue
 
         if isinstance(value, dict):

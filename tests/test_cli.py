@@ -5,7 +5,6 @@ import os
 import subprocess
 from pathlib import Path
 
-import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -126,6 +125,14 @@ def test_time_field_dollar_prefix_normalized(tmp_path):
     result = run_tav(str(p), "--time-field", "$.timestamp")
     assert result.returncode == 0
     assert "did not match" not in result.stderr
+
+
+def test_time_field_nested_path_warns(tmp_path):
+    """Nested dot-paths are not supported; only the leading '$.' is stripped."""
+    p = make_jsonl(tmp_path, [{"metadata": {"timestamp": "2024-01-01T00:00:00Z"}}])
+    result = run_tav(str(p), "--time-field", "$.metadata.timestamp")
+    assert result.returncode == 0
+    assert "did not match" in result.stderr
 
 
 # ---------------------------------------------------------------------------

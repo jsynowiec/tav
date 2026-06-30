@@ -101,6 +101,7 @@ class RecordStore:
 
     def sort_by_time(self, time_field: str, parser: Callable[[Any], Any]) -> None:
         """Sort the base list by parsed timestamp; unparseable records go last."""
+
         def sort_key(item):
             idx, rec = item
             if rec.kind == KIND_OBJECT and isinstance(rec.value, dict):

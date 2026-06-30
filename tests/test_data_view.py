@@ -34,7 +34,9 @@ def test_invalid_filter_preserves_previous_filter():
     store = RecordStore(lines)
     screen, mock_app = _make_screen(store)
 
-    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
         # Apply a valid filter first — store shrinks to 1 record
         screen._apply_command("v == `0`")
         assert len(store) == 1
@@ -54,23 +56,30 @@ def test_invalid_filter_with_no_previous_filter_stays_unfiltered():
     store = RecordStore(lines)
     screen, mock_app = _make_screen(store)
 
-    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
         screen._apply_command("[?invalid[[[")
         assert len(store) == 3
         assert screen._active_filter is None
 
 
-@pytest.mark.parametrize("expression, expected_count", [
-    ("v == `0`", 1),
-    ("v > `0`", 2),
-])
+@pytest.mark.parametrize(
+    "expression, expected_count",
+    [
+        ("v == `0`", 1),
+        ("v > `0`", 2),
+    ],
+)
 def test_subtitle_includes_active_filter_expression(expression, expected_count):
     """Subtitle must show source, filtered record count, and the filter expression."""
     lines = [make_object(i + 1, {"v": i}) for i in range(3)]
     store = RecordStore(lines)
     screen, mock_app = _make_screen(store)
 
-    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
         screen._apply_command(expression)
 
     expected_subtitle = f"test.jsonl  {expected_count} records — :{expression}"
@@ -80,18 +89,66 @@ def test_subtitle_includes_active_filter_expression(expression, expected_count):
 def test_time_filter_works_across_formats():
     """Time filter matches records regardless of timestamp format (epoch, ISO, strptime)."""
     lines = [
-        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),       # aware ISO
-        make_object(2, {"ts": "2024-01-03T00:00:00"}),         # naive ISO
-        make_object(3, {"ts": 1704240000}),                     # epoch (2024-01-03 00:00:00 UTC)
-        make_object(4, {"ts": "2024-01-05 00:00:00"}),          # strptime
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),  # aware ISO
+        make_object(2, {"ts": "2024-01-03T00:00:00"}),  # naive ISO
+        make_object(3, {"ts": 1704240000}),  # epoch (2024-01-03 00:00:00 UTC)
+        make_object(4, {"ts": "2024-01-05 00:00:00"}),  # strptime
     ]
     store = RecordStore(lines)
     screen, mock_app = _make_screen(store)
     mock_app.time_field = "ts"
 
-    with patch.object(DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app):
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
         screen._apply_time_filter("2024-01-02", "after")
 
     assert len(store) == 3
     line_nums = {store[i].line_number for i in range(len(store))}
     assert line_nums == {2, 3, 4}
+
+
+def test_invalid_time_filter_preserves_previous_filter():
+    """Applying an invalid time filter after a valid one must preserve the old filter."""
+    lines = [
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),
+        make_object(2, {"ts": "2024-01-03T00:00:00Z"}),
+    ]
+    store = RecordStore(lines)
+    screen, mock_app = _make_screen(store)
+    mock_app.time_field = "ts"
+
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
+        screen._apply_time_filter("2024-01-02", "after")
+        assert len(store) == 1
+        assert screen._active_filter == "after:2024-01-02"
+
+        screen._apply_time_filter("not-a-timestamp", "after")
+
+    assert len(store) == 1
+    assert screen._active_filter == "after:2024-01-02"
+
+
+def test_time_filter_without_time_field_preserves_previous_filter():
+    """Applying a time filter when no time field is detected must preserve the old filter."""
+    lines = [
+        make_object(1, {"ts": "2024-01-01T00:00:00Z"}),
+        make_object(2, {"ts": "2024-01-03T00:00:00Z"}),
+    ]
+    store = RecordStore(lines)
+    screen, mock_app = _make_screen(store)
+    mock_app.time_field = "ts"
+
+    with patch.object(
+        DataViewScreen, "app", new_callable=PropertyMock, return_value=mock_app
+    ):
+        screen._apply_time_filter("2024-01-02", "after")
+        assert len(store) == 1
+
+        mock_app.time_field = None
+        screen._apply_time_filter("2024-01-04", "after")
+
+    assert len(store) == 1
+    assert screen._active_filter == "after:2024-01-02"

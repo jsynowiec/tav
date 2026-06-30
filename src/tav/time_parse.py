@@ -65,6 +65,7 @@ def create_time_parser(
     assume_tz: TzInfo = timezone.utc,
 ) -> Callable[[Any], datetime | None]:
     """Return a timestamp parser that interprets naive datetimes in assume_tz."""
+
     def _parse(value: Any) -> datetime | None:
         if isinstance(value, bool):
             return None
@@ -73,4 +74,5 @@ def create_time_parser(
         if isinstance(value, str):
             return _parse_string(value, assume_tz)
         return None
+
     return _parse

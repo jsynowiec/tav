@@ -8,7 +8,9 @@ def make_object(line_number, data):
 
 
 def make_error(line_number, raw="bad line"):
-    return ParsedLine(line_number=line_number, value=raw, kind=KIND_ERROR, error="parse error")
+    return ParsedLine(
+        line_number=line_number, value=raw, kind=KIND_ERROR, error="parse error"
+    )
 
 
 def make_primitive(line_number, value):

@@ -19,7 +19,10 @@ _SENTINEL = "__tav_f7a2__"
 def _walk_comparators(node: dict, found: list[str]) -> None:
     if node.get("type") == "comparator":
         for child in node.get("children", []):
-            if child.get("type") == "field" and child.get("value") in _BARE_LITERAL_NAMES:
+            if (
+                child.get("type") == "field"
+                and child.get("value") in _BARE_LITERAL_NAMES
+            ):
                 found.append(child["value"])
     for child in node.get("children", []):
         _walk_comparators(child, found)
@@ -47,8 +50,7 @@ def filter_records(store: "RecordStore", expression: str) -> list[int]:
         compiled = jmespath.compile(expr)
     except jmespath.exceptions.ParseError as e:
         raise ValueError(
-            f"Invalid filter: {e}\n"
-            "Hint: use backticks for numbers, e.g. field == `42`"
+            f"Invalid filter: {e}\nHint: use backticks for numbers, e.g. field == `42`"
         ) from e
 
     bare = []
@@ -86,7 +88,9 @@ def filter_records(store: "RecordStore", expression: str) -> list[int]:
         for val in values:
             val.pop(_SENTINEL, None)
 
-    return [idx for pos, (idx, _) in enumerate(indexed_values) if pos in matched_positions]
+    return [
+        idx for pos, (idx, _) in enumerate(indexed_values) if pos in matched_positions
+    ]
 
 
 def search_records(store: "RecordStore", pattern: str) -> list[int]:

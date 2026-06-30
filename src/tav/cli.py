@@ -25,6 +25,7 @@ def _launch_app(
     if os.environ.get("TAV_NO_UI"):
         return
     from tav.app import TavApp  # noqa: PLC0415
+
     TavApp(
         store=store,
         time_field=time_field,
@@ -50,7 +51,7 @@ def main() -> None:
     parser.add_argument(
         "--time-field",
         metavar="FIELD",
-        help="Dot-path to the timestamp field (e.g. timestamp or $.timestamp)",
+        help="Name of the timestamp field (e.g. timestamp or $.timestamp). Only top-level fields are supported.",
     )
     parser.add_argument(
         "--timezone",
@@ -94,7 +95,10 @@ def main() -> None:
     # Warn on empty file
     # ------------------------------------------------------------------
     if not result.records:
-        print("Warning: no records loaded (file is empty or contains no valid lines)", file=sys.stderr)
+        print(
+            "Warning: no records loaded (file is empty or contains no valid lines)",
+            file=sys.stderr,
+        )
         sys.exit(0)
 
     # ------------------------------------------------------------------

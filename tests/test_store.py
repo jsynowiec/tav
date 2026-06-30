@@ -24,6 +24,7 @@ def _sample_lines():
 # Default mode — objects only
 # ---------------------------------------------------------------------------
 
+
 def test_len_returns_object_count_by_default():
     store = RecordStore(_sample_lines())
     assert len(store) == 3
@@ -54,6 +55,7 @@ def test_getitem_accesses_visible_records():
 # Empty store
 # ---------------------------------------------------------------------------
 
+
 def test_empty_store_len_is_zero():
     store = RecordStore([])
     assert len(store) == 0
@@ -74,6 +76,7 @@ def test_out_of_bounds_access_raises_index_error():
 # ---------------------------------------------------------------------------
 # Filtering
 # ---------------------------------------------------------------------------
+
 
 def test_apply_filter_narrows_visible_records():
     store = RecordStore(_sample_lines())
@@ -103,6 +106,7 @@ def test_filter_and_mode_are_independent():
 # all_fields
 # ---------------------------------------------------------------------------
 
+
 def test_all_fields_unions_object_keys():
     lines = [
         make_object(1, {"a": 1, "b": 2}),
@@ -126,6 +130,7 @@ def test_all_fields_ignores_non_objects():
 # Count properties
 # ---------------------------------------------------------------------------
 
+
 def test_total_count_ignores_filter_and_mode():
     store = RecordStore(_sample_lines())
     store.apply_filter(lambda rec: False)  # filter everything out
@@ -145,6 +150,7 @@ def test_error_count_correct():
 # ---------------------------------------------------------------------------
 # Sorting
 # ---------------------------------------------------------------------------
+
 
 def _ts(iso: str) -> datetime:
     return datetime.fromisoformat(iso).replace(tzinfo=timezone.utc)
@@ -205,10 +211,10 @@ def test_sort_by_time_chronological_order():
     from tav.time_parse import parse_timestamp
 
     lines = [
-        make_object(1, {"ts": "2024-01-03T00:00:00"}),      # naive ISO
-        make_object(2, {"ts": "2024-01-01T00:00:00Z"}),      # aware ISO
-        make_object(3, {"ts": 1704153600}),                   # epoch (2024-01-02)
-        make_object(4, {"ts": "2024-01-04 00:00:00"}),        # strptime
+        make_object(1, {"ts": "2024-01-03T00:00:00"}),  # naive ISO
+        make_object(2, {"ts": "2024-01-01T00:00:00Z"}),  # aware ISO
+        make_object(3, {"ts": 1704153600}),  # epoch (2024-01-02)
+        make_object(4, {"ts": "2024-01-04 00:00:00"}),  # strptime
     ]
     store = RecordStore(lines)
     store.sort_by_time("ts", parse_timestamp)
@@ -218,6 +224,7 @@ def test_sort_by_time_chronological_order():
 # ---------------------------------------------------------------------------
 # field_tree
 # ---------------------------------------------------------------------------
+
 
 def test_field_tree_flat_object():
     lines = [make_object(1, {"a": 1, "b": "hello"})]
@@ -291,6 +298,7 @@ def test_field_tree_nested_array_of_objects():
 # ---------------------------------------------------------------------------
 # visible_fields
 # ---------------------------------------------------------------------------
+
 
 def test_visible_fields_default_none():
     store = RecordStore([make_object(1, {"a": 1})])

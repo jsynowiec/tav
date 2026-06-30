@@ -2,7 +2,7 @@
 # ABOUTME: Returns DataStats, TimeStats, and FieldStats — no UI imports.
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Callable, Any
 
 from tav.loader import KIND_OBJECT
@@ -21,21 +21,23 @@ class TimeStats:
 @dataclass
 class FieldStats:
     name: str
-    present_count: int          # records containing this field
-    total_count: int            # total records in input
-    completeness: float         # present_count / total_count (0.0 to 1.0)
-    value_type: str             # "numeric", "string", "boolean", "mixed", "null"
-    cardinality: str            # "low" (<10), "medium" (10-100), "high" (>100)
-    unique_count: int           # count of unique values
-    value_counts: dict | None   # {json.dumps(value): count} for low/medium, None for high
+    present_count: int  # records containing this field
+    total_count: int  # total records in input
+    completeness: float  # present_count / total_count (0.0 to 1.0)
+    value_type: str  # "numeric", "string", "boolean", "mixed", "null"
+    cardinality: str  # "low" (<10), "medium" (10-100), "high" (>100)
+    unique_count: int  # count of unique values
+    value_counts: (
+        dict | None
+    )  # {json.dumps(value): count} for low/medium, None for high
 
 
 @dataclass
 class DataStats:
-    total_count: int            # total records in dataset (all kinds)
-    filtered_count: int         # records in current view
-    object_count: int           # kind=object records (unfiltered)
-    error_count: int            # kind=error records (unfiltered)
+    total_count: int  # total records in dataset (all kinds)
+    filtered_count: int  # records in current view
+    object_count: int  # kind=object records (unfiltered)
+    error_count: int  # kind=error records (unfiltered)
     time_stats: TimeStats | None
     field_stats: list[FieldStats]
 
@@ -47,7 +49,9 @@ def compute_stats(
 ) -> DataStats:
     """Compute statistics over the current visible records in the store."""
     visible = [store[i] for i in range(len(store))]
-    visible_objects = [r for r in visible if r.kind == KIND_OBJECT and isinstance(r.value, dict)]
+    visible_objects = [
+        r for r in visible if r.kind == KIND_OBJECT and isinstance(r.value, dict)
+    ]
 
     time_stats = _compute_time_stats(visible_objects, time_field, time_parser)
     field_stats = _compute_field_stats(visible_objects)
@@ -150,15 +154,17 @@ def _compute_field_stats(objects: list[Any]) -> list[FieldStats]:
         else:
             cardinality = "high"
 
-        result.append(FieldStats(
-            name=field_name,
-            present_count=present_count,
-            total_count=total,
-            completeness=completeness,
-            value_type=value_type,
-            cardinality=cardinality,
-            unique_count=unique_count,
-            value_counts=value_counts if cardinality != "high" else None,
-        ))
+        result.append(
+            FieldStats(
+                name=field_name,
+                present_count=present_count,
+                total_count=total,
+                completeness=completeness,
+                value_type=value_type,
+                cardinality=cardinality,
+                unique_count=unique_count,
+                value_counts=value_counts if cardinality != "high" else None,
+            )
+        )
 
     return result

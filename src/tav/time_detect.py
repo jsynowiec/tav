@@ -2,16 +2,18 @@
 # ABOUTME: Uses name heuristics first, then falls back to value-parse heuristics.
 from tav.time_parse import parse_timestamp
 
-_CANONICAL_NAMES: frozenset[str] = frozenset({
-    "timestamp",
-    "time",
-    "ts",
-    "datetime",
-    "date",
-    "created_at",
-    "updated_at",
-    "@timestamp",
-})
+_CANONICAL_NAMES: frozenset[str] = frozenset(
+    {
+        "timestamp",
+        "time",
+        "ts",
+        "datetime",
+        "date",
+        "created_at",
+        "updated_at",
+        "@timestamp",
+    }
+)
 
 
 def detect_time_field(records: list[dict], sample_size: int = 20) -> str | None:
@@ -33,6 +35,7 @@ def detect_time_field(records: list[dict], sample_size: int = 20) -> str | None:
 # ---------------------------------------------------------------------------
 # Stage 1: name heuristic
 # ---------------------------------------------------------------------------
+
 
 def _detect_by_name(sample: list[dict]) -> str | None:
     """Return the best name-matched field, or None."""
@@ -68,6 +71,7 @@ def _detect_by_name(sample: list[dict]) -> str | None:
 # ---------------------------------------------------------------------------
 # Stage 2: value heuristic
 # ---------------------------------------------------------------------------
+
 
 def _detect_by_value(sample: list[dict]) -> str | None:
     """Return the field with the highest parse-success rate (>= 50%), or None."""

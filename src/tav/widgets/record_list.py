@@ -25,16 +25,15 @@ _STYLE_BOOL = Style(color="red")
 _STYLE_NULL = Style(color="bright_black")
 
 
-def _is_field_visible(path: tuple[str, ...], visible_fields: set[tuple[str, ...]]) -> bool:
+def _is_field_visible(
+    path: tuple[str, ...], visible_fields: set[tuple[str, ...]]
+) -> bool:
     """Return True if path is selected or any descendant path is selected."""
     if path in visible_fields:
         return True
     # Check if any selected path starts with this path (descendant)
     prefix_len = len(path)
-    return any(
-        len(f) > prefix_len and f[:prefix_len] == path
-        for f in visible_fields
-    )
+    return any(len(f) > prefix_len and f[:prefix_len] == path for f in visible_fields)
 
 
 def _colorize_value(
@@ -70,7 +69,11 @@ def _colorize_value(
                 return False
             items = list(val.items())
             if visible_fields is not None:
-                items = [(k, v) for k, v in items if _is_field_visible(path + (k,), visible_fields)]
+                items = [
+                    (k, v)
+                    for k, v in items
+                    if _is_field_visible(path + (k,), visible_fields)
+                ]
             for i, (k, v) in enumerate(items):
                 if not _append(f'"{k}":', _STYLE_KEY):
                     return False
@@ -213,7 +216,9 @@ class RecordList(ScrollView, can_focus=True):
                 content = content.ljust(content_width)
             content_segs = [Segment(content, error_style)]
         else:
-            content_segs = _colorize_value(record.value, content_width, self._store.visible_fields)
+            content_segs = _colorize_value(
+                record.value, content_width, self._store.visible_fields
+            )
 
         segments = prefix_segs + content_segs
 

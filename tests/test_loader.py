@@ -16,6 +16,7 @@ def _sio(text: str) -> io.StringIO:
 # Empty file
 # ---------------------------------------------------------------------------
 
+
 def test_empty_file_returns_no_records():
     result = load_lines(_sio(""))
     assert result.records == []
@@ -25,12 +26,16 @@ def test_empty_file_returns_no_records():
 # Blank / whitespace-only lines are skipped
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("line", [
-    "\n",
-    "   \n",
-    "\t\n",
-    "\n\n\n",
-])
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "\n",
+        "   \n",
+        "\t\n",
+        "\n\n\n",
+    ],
+)
 def test_blank_lines_are_skipped(line):
     result = load_lines(_sio(line))
     assert result.records == []
@@ -39,6 +44,7 @@ def test_blank_lines_are_skipped(line):
 # ---------------------------------------------------------------------------
 # JSON objects
 # ---------------------------------------------------------------------------
+
 
 def test_json_object_parsed_as_object_kind():
     result = load_lines(_sio('{"a": 1}\n'))
@@ -54,8 +60,9 @@ def test_json_object_parsed_as_object_kind():
 # JSON arrays
 # ---------------------------------------------------------------------------
 
+
 def test_json_array_parsed_as_array_kind():
-    result = load_lines(_sio('[1, 2, 3]\n'))
+    result = load_lines(_sio("[1, 2, 3]\n"))
     assert len(result.records) == 1
     rec = result.records[0]
     assert rec.kind == KIND_ARRAY
@@ -68,14 +75,18 @@ def test_json_array_parsed_as_array_kind():
 # JSON primitives
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("raw, expected_value", [
-    ("42\n", 42),
-    ("3.14\n", 3.14),
-    ('"hello"\n', "hello"),
-    ("true\n", True),
-    ("false\n", False),
-    ("null\n", None),
-])
+
+@pytest.mark.parametrize(
+    "raw, expected_value",
+    [
+        ("42\n", 42),
+        ("3.14\n", 3.14),
+        ('"hello"\n', "hello"),
+        ("true\n", True),
+        ("false\n", False),
+        ("null\n", None),
+    ],
+)
 def test_json_primitive_parsed_as_primitive_kind(raw, expected_value):
     result = load_lines(_sio(raw))
     assert len(result.records) == 1
@@ -89,11 +100,15 @@ def test_json_primitive_parsed_as_primitive_kind(raw, expected_value):
 # Invalid JSON
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("raw", [
-    "not valid json {\n",
-    "{unclosed\n",
-    "{'single': 'quotes'}\n",
-])
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "not valid json {\n",
+        "{unclosed\n",
+        "{'single': 'quotes'}\n",
+    ],
+)
 def test_invalid_json_stored_as_error_kind(raw):
     result = load_lines(_sio(raw))
     assert len(result.records) == 1
@@ -107,6 +122,7 @@ def test_invalid_json_stored_as_error_kind(raw):
 # ---------------------------------------------------------------------------
 # Mixed file — correct kinds and line numbers
 # ---------------------------------------------------------------------------
+
 
 def test_mixed_file_produces_correct_records_and_line_numbers():
     lines = mixed_jsonl_lines()
@@ -149,6 +165,7 @@ def test_mixed_file_produces_correct_records_and_line_numbers():
 # BOM stripping
 # ---------------------------------------------------------------------------
 
+
 def test_bom_at_start_of_file_is_stripped():
     # \ufeff is the UTF-8 BOM character
     text = "\ufeff" + '{"key": "value"}\n'
@@ -163,13 +180,19 @@ def test_bom_at_start_of_file_is_stripped():
 # Line number correctness including gaps from blank lines
 # ---------------------------------------------------------------------------
 
+
 def test_line_numbers_account_for_blank_lines():
-    text = "\n".join([
-        '{"x": 1}',   # line 1
-        "",            # line 2 — blank, skipped
-        "",            # line 3 — blank, skipped
-        '{"x": 2}',   # line 4
-    ]) + "\n"
+    text = (
+        "\n".join(
+            [
+                '{"x": 1}',  # line 1
+                "",  # line 2 — blank, skipped
+                "",  # line 3 — blank, skipped
+                '{"x": 2}',  # line 4
+            ]
+        )
+        + "\n"
+    )
     result = load_lines(_sio(text))
     assert len(result.records) == 2
     assert result.records[0].line_number == 1
@@ -179,6 +202,7 @@ def test_line_numbers_account_for_blank_lines():
 # ---------------------------------------------------------------------------
 # Load from actual file (tmp_path)
 # ---------------------------------------------------------------------------
+
 
 def test_load_from_file(tmp_path):
     data = [{"ts": "2024-01-01T00:00:00Z", "v": i} for i in range(3)]
@@ -197,6 +221,7 @@ def test_load_from_file(tmp_path):
 # Load from StringIO
 # ---------------------------------------------------------------------------
 
+
 def test_load_from_string_io():
     text = '{"a": 1}\n{"b": 2}\n'
     result = load_lines(io.StringIO(text))
@@ -210,6 +235,7 @@ def test_load_from_string_io():
 # ---------------------------------------------------------------------------
 # Windows CRLF line endings
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("line_ending", ["\r\n", "\n"])
 def test_crlf_and_lf_line_endings_parsed_correctly(line_ending):
