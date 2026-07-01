@@ -9,6 +9,11 @@ authors = [
 
 requires-python = ">=3.14"
 
+dependencies = [
+    "textual>=2.0.0",
+    "jmespath>=1.0.0",
+]
+
 keywords = [
   "jsonl",
   "json-lines",
@@ -23,6 +28,7 @@ keywords = [
   "jmespath",
   "textual",
 ]
+
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -44,11 +50,6 @@ classifiers = [
 Homepage = "https://github.com/jsynowiec/tav"
 Repository = "https://github.com/jsynowiec/tav"
 Issues = "https://github.com/jsynowiec/tav/issues"
-
-dependencies = [
-    "textual>=2.0.0",
-    "jmespath>=1.0.0",
-]
 
 [dependency-groups]
 dev = [
