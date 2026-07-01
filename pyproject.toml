@@ -1,13 +1,49 @@
 [project]
 name = "tav"
 version = "0.1.0"
-description = "Terminal viewer for JSONL time-series data"
+description = "Terminal UI (TUI) for exploring, filtering, and summarizing JSON Lines (JSONL) logs, events, and time-series data."
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [
     { name = "Jakub Synowiec" },
 ]
 
 requires-python = ">=3.14"
+
+keywords = [
+  "jsonl",
+  "json-lines",
+  "time-series",
+  "terminal-ui",
+  "tui",
+  "cli",
+  "data-analysis",
+  "data-visualization",
+  "logs",
+  "log-viewer",
+  "jmespath",
+  "textual",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Topic :: Scientific/Engineering :: Visualization",
+  "Topic :: Software Development :: User Interfaces",
+  "Topic :: System :: Logging",
+  "Topic :: Terminals",
+  "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/jsynowiec/tav"
+Repository = "https://github.com/jsynowiec/tav"
+Issues = "https://github.com/jsynowiec/tav/issues"
 
 dependencies = [
     "textual>=2.0.0",
